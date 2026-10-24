@@ -1,0 +1,248 @@
+{
+  "track": "case",
+  "pageLimit": 50,
+  "pageTargetTolerance": 0.1,
+  "wordMin": 3000,
+  "chartMin": 12,
+  "sourceMin": 12,
+  "sourceDomainsMin": 6,
+  "sourceOfficialRatioMin": 0.5,
+  "sourceFreshRatioMin": 0.7,
+  "numericDensity": 20,
+  "numericDensityChapters": {
+    "04_本企业财务分析": 30,
+    "08_财务预测": 30
+  },
+  "requiredElements": [
+    {
+      "id": "summary",
+      "name": "概要",
+      "aliases": [
+        "执行摘要",
+        "摘要"
+      ]
+    },
+    {
+      "id": "intro",
+      "name": "引言",
+      "aliases": [
+        "前言"
+      ]
+    },
+    {
+      "id": "economy",
+      "name": "当前经济情况",
+      "aliases": [
+        "宏观与行业环境",
+        "经济环境分析"
+      ]
+    },
+    {
+      "id": "finanalysis",
+      "name": "本企业财务分析",
+      "aliases": [
+        "财务分析",
+        "财务状况分析"
+      ]
+    },
+    {
+      "id": "strategyanalysis",
+      "name": "策略分析",
+      "aliases": [
+        "战略分析"
+      ]
+    },
+    {
+      "id": "strategyplan",
+      "name": "策略计划",
+      "aliases": [
+        "战略规划",
+        "战略计划"
+      ]
+    },
+    {
+      "id": "implementation",
+      "name": "实施计划",
+      "aliases": [
+        "执行计划"
+      ]
+    },
+    {
+      "id": "forecast",
+      "name": "财务预测",
+      "aliases": [
+        "财务预测与计划综合收益表",
+        "盈利预测"
+      ]
+    },
+    {
+      "id": "governance",
+      "name": "公司治理惯例回顾",
+      "aliases": [
+        "公司治理",
+        "治理回顾"
+      ]
+    },
+    {
+      "id": "appendix",
+      "name": "附录和参考资料",
+      "aliases": [
+        "附录",
+        "参考文献"
+      ]
+    },
+    {
+      "id": "knowledge",
+      "name": "所用到的财务与会计知识点列表",
+      "aliases": [
+        "知识点列表",
+        "财务与会计知识点"
+      ]
+    }
+  ],
+  "requiredEvidence": {
+    "has_competitor_matrix": true,
+    "has_sensitivity": true,
+    "three_statement_check": true,
+    "ratio_table_with_formula": true,
+    "comprehensive_income_forecast": true,
+    "annual_report_page_refs": true,
+    "risk_matrix_min": 5
+  },
+  "numberKeys": [
+    "revenue_y1",
+    "revenue_y3",
+    "net_profit_y3",
+    "gross_margin_y3",
+    "roe_y3",
+    "sample_size"
+  ],
+  "forbiddenTerms": [
+    "颠覆",
+    "独一无二",
+    "蓝海",
+    "众所周知",
+    "前景广阔",
+    "填补空白",
+    "我们学校",
+    "老师说",
+    "据统计",
+    "预计将",
+    "史无前例"
+  ],
+  "advertisingLawTerms": [
+    "最佳",
+    "最好",
+    "最优",
+    "最先进",
+    "第一",
+    "第一品牌",
+    "全网第一",
+    "行业第一",
+    "最高级",
+    "顶级",
+    "国家级",
+    "世界级",
+    "唯一",
+    "独家",
+    "极致",
+    "首选",
+    "100%"
+  ],
+  "weakTermsPer100": 0.1,
+  "anonymityRegex": "(大学|学院|University|College|校徽|学号|1[3-9]\\d{9}|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,})",
+  "anonymityWhitelist": [
+    "大学生",
+    "University of",
+    "科大讯飞",
+    "创业导师",
+    "行业导师",
+    "导师制",
+    "出版社",
+    "研究院",
+    "科学院",
+    "社科院",
+    "医院",
+    "法院",
+    "【提交前由团队填写：选手姓名】",
+    "【提交前由团队填写：指导教师姓名】"
+  ],
+  "pitch": {
+    "minutes": 10,
+    "deckPages": [
+      18,
+      22
+    ],
+    "deckPagesAppendixMax": 4,
+    "scriptWords": [
+      1650,
+      1950
+    ],
+    "qaMin": 40,
+    "qaDimensions": [
+      "财务分析",
+      "战略逻辑",
+      "实施与资源",
+      "财务预测",
+      "治理与合规",
+      "行业与竞争"
+    ]
+  },
+  "advertisingLawWhitelist": [
+    "最低点",
+    "最近",
+    "最终",
+    "最小",
+    "最大值",
+    "最高值",
+    "首选渠道",
+    "第一年",
+    "第一阶段",
+    "第一批",
+    "第一季度",
+    "前三",
+    "唯一标识"
+  ],
+  "weakTerms": [
+    "较好",
+    "较高",
+    "较大",
+    "显著",
+    "良好",
+    "合理",
+    "有效",
+    "明显",
+    "一定程度"
+  ],
+  "coverFieldsByVariant": {
+    "accounting": [
+      "团队名称",
+      "组别",
+      "【提交前由团队填写：选手姓名】",
+      "【提交前由团队填写：指导教师姓名】"
+    ],
+    "retail": [
+      "团队名称",
+      "作品名称",
+      "案例企业名称"
+    ]
+  },
+  "requiredEvidenceByVariant": {
+    "accounting": {
+      "problem_identification": true,
+      "industry_cluster_analysis": true,
+      "ratio_table_with_formula": true,
+      "annual_report_page_refs": true,
+      "three_statement_check": true,
+      "comprehensive_income_forecast": true
+    },
+    "retail": {
+      "regional_feature": true,
+      "analysis_framework_diagram": true,
+      "novel_method": true,
+      "word_min": 3000,
+      "deck_min_pages": 20
+    }
+  },
+  "syntheticMarkerCoverage": 1.0
+}

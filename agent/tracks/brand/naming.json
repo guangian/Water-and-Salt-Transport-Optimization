@@ -1,0 +1,13 @@
+{
+  "fileNameRule": "{学校名称}-{团队名称}-{作品名称}",
+  "fileNameRuleNational": "{抽签编号}-{团队名称}-{作品名称}",
+  "coverFields": ["作品名称", "团队名称", "指导企业名称"],
+  "coverForbidden": ["院校名称", "院校图片或 logo", "参赛人员姓名", "联系方式"],
+  "declarations": ["作品原创性声明", "作品版权声明", "企业授权书"],
+  "deckMinPages": 0,
+  "videoMinutes": 10,
+  "videoOnCamera": "开头 3–5 名队员真人出镜",
+  "qaMinutes": 5,
+  "pdfMaxMB": 30,
+  "anonymityPenalty": "院校信息每处扣 3 分"
+}

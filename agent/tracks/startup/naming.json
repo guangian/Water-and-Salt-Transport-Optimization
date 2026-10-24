@@ -1,0 +1,13 @@
+{
+  "fileNameRule": "{组别}-{学校名称}-{团队名称}-{作品名称}",
+  "declarationNameRule": "{组别}-{学校名称}-{团队名称}-声明及授权书",
+  "coverFields": ["竞赛组别", "团队名称", "项目名称"],
+  "coverForbidden": ["院校名称", "logo", "姓名", "联系方式", "其他任何信息"],
+  "declarations": ["作品原创性声明和版权使用授权书"],
+  "deckMinPages": 20,
+  "videoMinutes": 10,
+  "videoOnCamera": "开头 3–5 名队员真人出镜",
+  "qaMinutes": 5,
+  "pdfMaxMB": 30,
+  "anonymityPenalty": "院校信息、logo、联系方式一经发现扣分；省赛 PDF < 3000 字或 PPT < 20 页扣 3 分"
+}

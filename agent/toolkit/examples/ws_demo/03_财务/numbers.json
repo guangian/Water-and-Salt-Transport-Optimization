@@ -1,0 +1,13 @@
+{
+  "generatedAt": "2026-03-10T10:00:00+08:00",
+  "unit": "万元",
+  "entries": [
+    { "key": "revenue_y1", "label": "第 1 年营业收入", "value": 1150, "unit": "万元", "source": "03_财务/财务模型.xlsx!利润表!C5", "usedIn": ["05_正文/00_概要.md"] },
+    { "key": "revenue_y2", "label": "第 2 年营业收入", "value": 2050, "unit": "万元", "source": "03_财务/财务模型.xlsx!利润表!D5", "usedIn": ["05_正文/00_概要.md", "05_正文/01_引言.md"] },
+    { "key": "budget_total", "label": "推广预算总额", "value": 300, "unit": "万元", "source": "03_财务/财务模型.xlsx!预算!B20" },
+    { "key": "breakeven_units", "label": "旗舰套装盈亏平衡销量", "value": 2583, "unit": "套", "source": "03_财务/财务模型.xlsx!盈亏平衡!C8" },
+    { "key": "min_cash", "label": "现金最低点", "value": -396, "unit": "万元", "source": "03_财务/财务模型.xlsx!现金流量表!F12" },
+    { "key": "sample_size", "label": "问卷有效样本量", "value": 372, "unit": "份", "source": "01_调研/调研工具包/示例结果.md", "synthetic": true, "usedIn": ["05_正文/02_品牌现状分析.md"] },
+    { "key": "kpi_awareness", "label": "无提示提及率", "value": 0.275, "unit": "%", "source": "01_调研/调研工具包/示例结果.md", "synthetic": true, "usedIn": ["05_正文/00_概要.md", "05_正文/02_品牌现状分析.md"] }
+  ]
+}

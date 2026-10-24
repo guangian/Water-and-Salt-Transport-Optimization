@@ -1,0 +1,41 @@
+{
+  "track": "brand",
+  "docType": "品牌策划书",
+  "cover": {
+    "title": "宋韵落天青，一釉生万象",
+    "subtitle": "弘宝汝瓷品牌策划书",
+    "teamName": "青瓷工作室",
+    "company": "指导企业：汝州市弘宝汝瓷坊有限公司",
+    "group": "本科组",
+    "date": "2026 年 3 月",
+    "extraLines": []
+  },
+  "abstract": "05_正文/00_概要.md",
+  "chapters": [
+    { "file": "05_正文/01_引言.md", "numbered": true },
+    { "file": "05_正文/02_品牌现状分析.md" },
+    { "file": "05_正文/03_品牌定位与传播策略.md" }
+  ],
+  "appendices": [
+    { "file": "05_正文/A1_调研问卷.md" }
+  ],
+  "references": "01_调研/参考文献.json",
+  "style": {
+    "bodyFont": "宋体",
+    "bodySize": 12,
+    "headingFont": "黑体",
+    "latinFont": "Times New Roman",
+    "lineSpacing": 1.5,
+    "firstLineIndent": 2,
+    "pageNumbers": true,
+    "toc": true,
+    "tocDepth": 2,
+    "header": "弘宝汝瓷品牌策划书",
+    "tableStyle": "banded",
+    "h1Align": "center",
+    "watermark": ""
+  },
+  "anonymize": { "forbidden": ["某某大学", "XX学院"], "whitelist": ["河南财经", "弘宝"] },
+  "output": "产出/弘宝汝瓷品牌策划书.docx",
+  "pdf": true
+}

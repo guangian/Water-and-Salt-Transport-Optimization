@@ -1,0 +1,93 @@
+{
+  "id": "case",
+  "name": "案例分析赛道（会计与商业管理案例 / 流通业经营模拟）",
+  "competition": "全国高校商业精英挑战赛 会计与商业管理案例竞赛 / 创新创业竞赛流通业经营模拟赛道",
+  "docName": "商业计划书（案例分析）",
+  "docType": "案例分析",
+  "financeMode": "startup",
+  "pageLimit": 50,
+  "pageTargetDefault": 42,
+  "wordMin": 3000,
+  "font": "正文宋体小四、英文 Times New Roman、单倍行距",
+  "scoring": {
+    "written": 70,
+    "pitch": 30,
+    "writtenItems": [
+      "会计案例：商业计划书 70（9 项）",
+      "流通业：书面报告 60"
+    ],
+    "pitchItems": [
+      "PPT 陈述视频 30 / 陈述答辩 40"
+    ]
+  },
+  "elements": [
+    "目录",
+    "概要",
+    "引言",
+    "当前经济情况",
+    "本企业财务分析",
+    "策略分析",
+    "策略计划",
+    "实施计划",
+    "财务预测",
+    "公司治理惯例回顾",
+    "附录和参考资料",
+    "所用到的财务与会计知识点列表"
+  ],
+  "variants": {
+    "accounting": {
+      "pageLimit": 50,
+      "elements": 12
+    },
+    "retail": {
+      "pageLimit": 80,
+      "wordMin": 3000,
+      "deckMinPages": 20,
+      "elements": [
+        "目录",
+        "概要",
+        "引言",
+        "案例简介",
+        "企业内外部环境分析",
+        "发展瓶颈分析",
+        "结论与启示",
+        "附录与参考资料"
+      ]
+    }
+  },
+  "groups": [
+    "研究生组",
+    "本科组",
+    "高（中）职组"
+  ],
+  "subjectTypes": [
+    "case-company"
+  ],
+  "pitch": {
+    "minutes": 10,
+    "qaMinutes": 5,
+    "videoMinutes": 10,
+    "deckPages": [
+      18,
+      22
+    ]
+  },
+  "assignedCases": [
+    {
+      "company": "科大讯飞股份有限公司（002230）",
+      "title": "2026 届命题：基于 2022–2024 年业绩报告，制定提升未来三年经营业绩的商业计划书",
+      "market": "—"
+    },
+    {
+      "company": "美的集团股份有限公司",
+      "title": "2025 届命题（2021–2023 年报）",
+      "market": "—"
+    },
+    {
+      "company": "河南瑞贝卡发制品股份有限公司（600439）",
+      "title": "2024 届命题（2020–2022 年报）",
+      "market": "—"
+    }
+  ],
+  "sourceNote": "见 knowledge/评分表与扣分细则.md"
+}

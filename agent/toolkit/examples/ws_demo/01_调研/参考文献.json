@@ -1,0 +1,76 @@
+[
+  {
+    "id": 1,
+    "type": "report",
+    "author": "中国陶瓷工业协会",
+    "title": "2025 年陶瓷行业运行报告",
+    "publisher": "中国陶瓷工业协会",
+    "year": 2025,
+    "date": "2025-03-18",
+    "url": "https://www.example-ceramics.org.cn/report/2025",
+    "accessed": "2026-03-02",
+    "note": ""
+  },
+  {
+    "id": 2,
+    "type": "web",
+    "author": "巨量算数",
+    "title": "2025 年新中式生活方式内容趋势",
+    "publisher": "巨量算数",
+    "year": 2025,
+    "date": "2025-11-20",
+    "url": "https://trendinsight.oceanengine.com/",
+    "accessed": "2026-03-05"
+  },
+  {
+    "id": 3,
+    "type": "gov",
+    "author": "汝州市人民政府",
+    "title": "汝州市汝瓷产业高质量发展三年行动方案（2024—2026 年）",
+    "number": "汝政〔2024〕12 号",
+    "year": 2024,
+    "date": "2024-05-10",
+    "url": "https://www.ruzhou.gov.cn/",
+    "accessed": "2026-03-02"
+  },
+  {
+    "id": 4,
+    "type": "paper",
+    "author": "张明, 李华",
+    "title": "非遗品牌年轻化传播的路径研究——以陶瓷类品牌为例",
+    "journal": "现代传播",
+    "year": 2025,
+    "volume": 47,
+    "issue": 3,
+    "pages": "112-118"
+  },
+  {
+    "id": 5,
+    "type": "book",
+    "author": "奥斯特瓦尔德, 皮尼厄",
+    "title": "商业模式新生代",
+    "place": "北京",
+    "publisher": "机械工业出版社",
+    "year": 2011
+  },
+  {
+    "id": 6,
+    "type": "annual-report",
+    "author": "巨量引擎",
+    "title": "2025 年工艺品与家居行业直播电商白皮书",
+    "publisher": "巨量引擎",
+    "year": 2025,
+    "date": "2025-12-08",
+    "url": "https://www.oceanengine.com/",
+    "accessed": "2026-03-06"
+  },
+  {
+    "id": 7,
+    "type": "news",
+    "author": "王芳",
+    "title": "汝瓷产业迈向百亿级：从收藏品到日用品的转身",
+    "newspaper": "河南日报",
+    "date": "2025-09-12",
+    "edition": "5"
+  }
+]

@@ -1,0 +1,25 @@
+{
+  "fileNameRule": "{学校名称}-{团队名称}-{作品名称}",
+  "coverFields": [
+    "团队名称",
+    "组别",
+    "参赛选手姓名（团队提交前填写）",
+    "指导教师姓名（团队提交前填写）"
+  ],
+  "coverForbidden": [
+    "电话",
+    "邮箱",
+    "院校名称",
+    "logo",
+    "标语"
+  ],
+  "declarations": [
+    "作品原创性声明",
+    "作品版权声明"
+  ],
+  "deckMinPages": 20,
+  "videoMinutes": 10,
+  "qaMinutes": 5,
+  "pdfMaxMB": 30,
+  "anonymityPenalty": "全文不得出现院校名称相关文字、logo、标语"
+}

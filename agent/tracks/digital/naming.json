@@ -1,0 +1,27 @@
+{
+  "fileNameRule": "{学校名称}-{团队名称}-{作品名称}-数字营销方案",
+  "videoNameRule": "{学校名称}-{团队名称}-{作品名称}-短视频",
+  "coverFields": [
+    "作品名称",
+    "团队名称",
+    "指导企业名称"
+  ],
+  "coverForbidden": [
+    "院校名称",
+    "图片或 LOGO",
+    "人员姓名",
+    "联系方式"
+  ],
+  "declarations": [
+    "企业授权书",
+    "免责声明",
+    "作品原创性声明",
+    "作品版权声明"
+  ],
+  "deckMinPages": 0,
+  "videoMinutes": 10,
+  "shortVideo": "≤ 3 分钟 ≤ 50 MB，≥ 3 个平台公开发布并带话题 #全国高校商业精英挑战赛 #数字营销赛",
+  "qaMinutes": 5,
+  "pdfMaxMB": 30,
+  "anonymityPenalty": "院校信息每处扣 3 分"
+}

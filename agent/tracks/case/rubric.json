@@ -1,0 +1,297 @@
+{
+  "track": "case",
+  "name": "案例分析商业计划书评审量规",
+  "scale": "每维 1–5 分；总分 = Σ(得分 ÷ 5 × 权重)",
+  "targetScore": 85,
+  "minDimension": 3,
+  "officialMapping": "会计案例：商业计划书 70 分按 12 要素；流通业：书面 60",
+  "dimensions": [
+    {
+      "id": "finanalysis",
+      "name": "财务分析深度（比率 / 杜邦 / 同业）",
+      "weight": 20,
+      "official": "本企业财务分析",
+      "anchors": {
+        "1": "只有报表摘抄",
+        "3": "有比率无公式或无同业对比",
+        "5": "五类比率带公式 + 杜邦分解 + 2–3 家同业 + 问题诊断 + 年报页码"
+      },
+      "machineCapRules": [
+        {
+          "check": "ratio_table_with_formula",
+          "when": "fail",
+          "cap": 2
+        }
+      ],
+      "officialWeight": 15
+    },
+    {
+      "id": "environment",
+      "name": "经济与行业环境",
+      "weight": 10,
+      "official": "当前经济情况",
+      "anchors": {
+        "1": "泛宏观",
+        "3": "宏观行业齐全但无对企业含义",
+        "5": "宏观 / 行业 / 技术趋势数据 + 对企业的具体含义"
+      },
+      "machineCapRules": [],
+      "officialWeight": 10
+    },
+    {
+      "id": "strategy",
+      "name": "策略分析与策略计划",
+      "weight": 20,
+      "official": "策略分析 + 策略计划",
+      "anchors": {
+        "1": "无框架",
+        "3": "有 SWOT 无 TOWS / 选项评估",
+        "5": "外部内部竞争者 + TOWS + 选项评分 + 三年方向与目标体系 + 业务组合"
+      },
+      "machineCapRules": [
+        {
+          "check": "has_competitor_matrix",
+          "when": "fail",
+          "cap": 3
+        }
+      ],
+      "officialWeight": 15
+    },
+    {
+      "id": "implementation",
+      "name": "实施计划",
+      "weight": 12,
+      "official": "实施计划",
+      "anchors": {
+        "1": "口号式",
+        "3": "有行动无里程碑 / 责任 / KPI",
+        "5": "关联业务单元 + 里程碑 + 责任 + 资源 + KPI"
+      },
+      "machineCapRules": [],
+      "officialWeight": 5
+    },
+    {
+      "id": "forecast",
+      "name": "财务预测（综合收益表）",
+      "weight": 18,
+      "official": "财务预测",
+      "anchors": {
+        "1": "无预测表",
+        "3": "有预测但假设无来源或不勾稽",
+        "5": "三年计划综合收益表 + 现金流 / 资产负债摘要 + 假设表 + 情景敏感性 + 与基准对比"
+      },
+      "machineCapRules": [
+        {
+          "check": "comprehensive_income_forecast",
+          "when": "fail",
+          "cap": 2
+        },
+        {
+          "check": "three_statement_check",
+          "when": "fail",
+          "cap": 3
+        }
+      ],
+      "officialWeight": 10
+    },
+    {
+      "id": "governance",
+      "name": "公司治理回顾",
+      "weight": 8,
+      "official": "公司治理惯例回顾",
+      "anchors": {
+        "1": "缺",
+        "3": "描述无评估",
+        "5": "依据治理准则逐项评估 + 改进建议"
+      },
+      "machineCapRules": [],
+      "officialWeight": 5
+    },
+    {
+      "id": "structure",
+      "name": "结构规范、引用与知识点",
+      "weight": 12,
+      "official": "要素完整 + 引用页码 + 知识点列表",
+      "anchors": {
+        "1": "缺要素",
+        "3": "齐全但引用无页码",
+        "5": "12 要素齐全 + 年报页码 + 比率公式 + 知识点 ≥ 15 + 禁语 0"
+      },
+      "machineCapRules": [
+        {
+          "check": "struct_coverage",
+          "when": "fail",
+          "cap": 2
+        },
+        {
+          "check": "annual_report_page_refs",
+          "when": "fail",
+          "cap": 3
+        }
+      ],
+      "officialWeight": 10
+    }
+  ],
+  "pitchDimensions": [
+    {
+      "id": "deck",
+      "name": "路演 PPT",
+      "weight": 50,
+      "anchors": {
+        "1": "顺序随意、整页文字",
+        "3": "关键页齐全但无钩子",
+        "5": "18–22 页、一页一结论句、每页 ≥ 1 个数字、图表 ≥ 8、与书面材料数字一致"
+      }
+    },
+    {
+      "id": "script",
+      "name": "讲稿与时间",
+      "weight": 25,
+      "anchors": {
+        "1": "超时或流水账",
+        "3": "字数合适但段落平均",
+        "5": "1650–1950 字、前 150 字钩子、每段首句结论、结尾回扣"
+      }
+    },
+    {
+      "id": "qa",
+      "name": "答辩准备",
+      "weight": 25,
+      "anchors": {
+        "1": "无题库",
+        "3": "< 20 题",
+        "5": "≥ 40 题六维度、三段式、主答人"
+      }
+    }
+  ],
+  "hardGates": [
+    "anonymity_hits",
+    "page_limit",
+    "word_min",
+    "cross_doc_consistency",
+    "forbidden_terms_adlaw",
+    "cover_fields"
+  ],
+  "version": "2026.1",
+  "officialPitchTotal": 30,
+  "officialWrittenTotal": 70,
+  "officialEstimateRule": "written = Σ(score ÷ 5 × officialWeight)；pitch = Σ pitchDimensions(score ÷ 5 × weight) × officialPitchTotal ÷ 100；total = written + pitch",
+  "officialMapByVariant": {
+    "accounting": {
+      "total": 70,
+      "items": [
+        {
+          "name": "内容完整程度",
+          "weight": 5,
+          "from": [
+            "structure"
+          ]
+        },
+        {
+          "name": "问题识别",
+          "weight": 5,
+          "from": [
+            "environment"
+          ]
+        },
+        {
+          "name": "案例企业财务指标分析",
+          "weight": 10,
+          "from": [
+            "finanalysis"
+          ]
+        },
+        {
+          "name": "行业数据聚类分析",
+          "weight": 5,
+          "from": [
+            "finanalysis",
+            "environment"
+          ]
+        },
+        {
+          "name": "论述和决策确认的清晰程度",
+          "weight": 10,
+          "from": [
+            "strategy"
+          ]
+        },
+        {
+          "name": "结论的正确有效性",
+          "weight": 10,
+          "from": [
+            "strategy",
+            "forecast"
+          ]
+        },
+        {
+          "name": "财务与会计知识的运用",
+          "weight": 10,
+          "from": [
+            "finanalysis",
+            "forecast"
+          ]
+        },
+        {
+          "name": "对问题的切题回应度",
+          "weight": 10,
+          "from": [
+            "implementation",
+            "governance"
+          ]
+        },
+        {
+          "name": "报告和阐释形式",
+          "weight": 5,
+          "from": [
+            "structure"
+          ]
+        }
+      ],
+      "pitchTotal": 30
+    },
+    "retail": {
+      "total": 60,
+      "items": [
+        {
+          "name": "分析框架",
+          "weight": 20,
+          "from": [
+            "strategy",
+            "structure"
+          ]
+        },
+        {
+          "name": "分析对象（含地区性特点）",
+          "weight": 10,
+          "from": [
+            "environment"
+          ]
+        },
+        {
+          "name": "分析视角",
+          "weight": 10,
+          "from": [
+            "strategy"
+          ]
+        },
+        {
+          "name": "分析方法",
+          "weight": 10,
+          "from": [
+            "finanalysis"
+          ]
+        },
+        {
+          "name": "结论",
+          "weight": 10,
+          "from": [
+            "forecast",
+            "implementation"
+          ]
+        }
+      ],
+      "pitchTotal": 40
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "bizgold",
+  "private": true,
+  "version": "1.0.0",
+  "description": "金策 BizGold —— 全国高校商业精英挑战赛 国金级智能体（Claude Agent SDK 内核 + 领域规范 + 本地 Web 工作台）",
+  "packageManager": "pnpm@10.33.4",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev": "pnpm -r --parallel --filter ./apps/* dev",
+    "build": "pnpm --filter ./apps/web build && pnpm --filter ./apps/server build",
+    "start": "pnpm --filter ./apps/server start",
+    "check": "pnpm -r --filter ./apps/* typecheck",
+    "test": "pnpm -r --filter ./apps/* test"
+  }
+}

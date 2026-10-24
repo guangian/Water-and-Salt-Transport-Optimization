@@ -1,0 +1,204 @@
+{
+  "track": "mice",
+  "pageLimit": 80,
+  "pageTargetTolerance": 0.1,
+  "wordMin": 0,
+  "chartMin": 15,
+  "sourceMin": 12,
+  "sourceDomainsMin": 6,
+  "sourceOfficialRatioMin": 0.3,
+  "sourceFreshRatioMin": 0.7,
+  "numericDensity": 15,
+  "numericDensityChapters": {
+    "05_行程设计": 15,
+    "07_费用预算": 30
+  },
+  "requiredElements": [
+    {
+      "id": "client",
+      "name": "客户公司介绍",
+      "aliases": [
+        "客户介绍",
+        "客户公司分析"
+      ]
+    },
+    {
+      "id": "purpose",
+      "name": "方案目的",
+      "aliases": [
+        "策划目的",
+        "活动目标"
+      ]
+    },
+    {
+      "id": "feasibility",
+      "name": "方案可行性分析",
+      "aliases": [
+        "可行性分析"
+      ]
+    },
+    {
+      "id": "theme",
+      "name": "方案主题",
+      "aliases": [
+        "活动主题",
+        "主题设计"
+      ]
+    },
+    {
+      "id": "itinerary",
+      "name": "具体行程设计与规划",
+      "aliases": [
+        "行程设计",
+        "行程安排",
+        "日程规划"
+      ]
+    },
+    {
+      "id": "contingency",
+      "name": "突发事件预案",
+      "aliases": [
+        "应急预案",
+        "风险预案"
+      ]
+    },
+    {
+      "id": "budget",
+      "name": "费用预算",
+      "aliases": [
+        "预算",
+        "财务预算"
+      ]
+    },
+    {
+      "id": "features",
+      "name": "方案特色",
+      "aliases": [
+        "亮点",
+        "创新点"
+      ]
+    },
+    {
+      "id": "effect",
+      "name": "方案预计效果",
+      "aliases": [
+        "预期效果",
+        "效果评估"
+      ]
+    }
+  ],
+  "requiredEvidence": {
+    "budget_recalc": true,
+    "budget_in_range": [
+      2000000,
+      4000000
+    ],
+    "kpi_table": true,
+    "contingency_min": 8,
+    "itinerary_timeline": true,
+    "venue_capacity_check": true,
+    "itinerary_grid": true,
+    "vendor_quote_table": true
+  },
+  "numberKeys": [
+    "budget_total",
+    "budget_per_person",
+    "headcount",
+    "kpi_satisfaction"
+  ],
+  "forbiddenTerms": [
+    "颠覆",
+    "独一无二",
+    "蓝海",
+    "众所周知",
+    "前景广阔",
+    "填补空白",
+    "我们学校",
+    "老师说",
+    "据统计",
+    "预计将",
+    "史无前例"
+  ],
+  "advertisingLawTerms": [
+    "最佳",
+    "最好",
+    "最优",
+    "最先进",
+    "第一",
+    "第一品牌",
+    "全网第一",
+    "行业第一",
+    "最高级",
+    "顶级",
+    "国家级",
+    "世界级",
+    "唯一",
+    "独家",
+    "极致",
+    "首选",
+    "100%"
+  ],
+  "weakTermsPer100": 0.1,
+  "anonymityRegex": "(大学|学院|University|College|校徽|指导教师|导师|学号|1[3-9]\\d{9}|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,})",
+  "anonymityWhitelist": [
+    "大学生",
+    "University of",
+    "创业导师",
+    "行业导师",
+    "导师制",
+    "出版社",
+    "研究院",
+    "科学院",
+    "社科院",
+    "医院",
+    "法院"
+  ],
+  "pitch": {
+    "minutes": 10,
+    "deckPages": [
+      18,
+      22
+    ],
+    "deckPagesAppendixMax": 4,
+    "scriptWords": [
+      1650,
+      1950
+    ],
+    "qaMin": 40,
+    "qaDimensions": [
+      "客户与目标",
+      "目的地与可行性",
+      "行程与创意",
+      "预算与供应商",
+      "执行与应急",
+      "效果与传播"
+    ]
+  },
+  "advertisingLawWhitelist": [
+    "最低点",
+    "最近",
+    "最终",
+    "最小",
+    "最大值",
+    "最高值",
+    "首选渠道",
+    "第一年",
+    "第一阶段",
+    "第一批",
+    "第一季度",
+    "前三",
+    "唯一标识"
+  ],
+  "weakTerms": [
+    "较好",
+    "较高",
+    "较大",
+    "显著",
+    "良好",
+    "合理",
+    "有效",
+    "明显",
+    "一定程度"
+  ],
+  "syntheticMarkerCoverage": 1.0
+}

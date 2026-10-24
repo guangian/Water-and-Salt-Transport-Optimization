@@ -1,0 +1,26 @@
+{
+  "fileNameRule": "{学校名称}-{团队名称}-{作品名称}",
+  "promoVideoNameRule": "{院校名称}-{团队名称}-{队长姓名}-{组别}-宣传视频",
+  "coverFields": [
+    "作品名称",
+    "团队名称",
+    "指导企业名称",
+    "客户公司名称"
+  ],
+  "coverForbidden": [
+    "院校名称",
+    "logo",
+    "联系方式"
+  ],
+  "declarations": [
+    "作品原创性声明",
+    "作品版权声明",
+    "企业授权书"
+  ],
+  "deckMinPages": 0,
+  "videoMinutes": 10,
+  "videoOnCamera": "开头全员出镜",
+  "qaMinutes": 5,
+  "pdfMaxMB": 30,
+  "anonymityPenalty": "院校信息每处扣 3 分"
+}

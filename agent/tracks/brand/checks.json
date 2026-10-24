@@ -1,0 +1,217 @@
+{
+  "track": "brand",
+  "pageLimit": 80,
+  "pageTargetTolerance": 0.1,
+  "wordMin": 0,
+  "chartMin": 20,
+  "sourceMin": 20,
+  "sourceDomainsMin": 8,
+  "sourceOfficialRatioMin": 0.4,
+  "sourceFreshRatioMin": 0.7,
+  "numericDensity": 15,
+  "numericDensityChapters": {
+    "02_品牌现状分析": 25,
+    "07_财务预算": 25
+  },
+  "requiredElements": [
+    {
+      "id": "summary",
+      "name": "概要",
+      "aliases": [
+        "执行摘要",
+        "摘要",
+        "方案概要"
+      ]
+    },
+    {
+      "id": "intro",
+      "name": "引言",
+      "aliases": [
+        "前言",
+        "策划背景与目标"
+      ]
+    },
+    {
+      "id": "status",
+      "name": "品牌现状分析",
+      "aliases": [
+        "现状分析",
+        "品牌诊断",
+        "市场与品牌现状"
+      ]
+    },
+    {
+      "id": "positioning",
+      "name": "品牌定位与核心价值",
+      "aliases": [
+        "品牌定位",
+        "定位与核心价值"
+      ]
+    },
+    {
+      "id": "elements",
+      "name": "品牌元素设计",
+      "aliases": [
+        "品牌识别设计",
+        "品牌元素"
+      ]
+    },
+    {
+      "id": "promotion",
+      "name": "品牌推广与传播",
+      "aliases": [
+        "传播策略",
+        "整合传播",
+        "推广与传播"
+      ]
+    },
+    {
+      "id": "protection",
+      "name": "品牌资产保护和风险管理",
+      "aliases": [
+        "品牌资产保护与风险管理",
+        "资产保护",
+        "风险管理"
+      ]
+    },
+    {
+      "id": "budget",
+      "name": "财务预算",
+      "aliases": [
+        "预算",
+        "预算与效果评估"
+      ]
+    },
+    {
+      "id": "appendix",
+      "name": "附录和参考资料",
+      "aliases": [
+        "附录",
+        "参考文献",
+        "参考资料"
+      ]
+    }
+  ],
+  "requiredEvidence": {
+    "has_primary_research": true,
+    "has_competitor_matrix": true,
+    "has_tam_sam_som": false,
+    "has_unit_economics": false,
+    "has_sensitivity": true,
+    "budget_recalc": true,
+    "kpi_table": true,
+    "positioning_statement": true,
+    "big_idea": true,
+    "risk_matrix_min": 6,
+    "kol_tiers": true,
+    "offline_event": true,
+    "brief_response_table": "if_assigned",
+    "appendix_questionnaire": true,
+    "honor_ratio_max": 0.05,
+    "title_pattern": true
+  },
+  "numberKeys": [
+    "budget_total",
+    "sample_size",
+    "kpi_exposure",
+    "kpi_conversion",
+    "roi"
+  ],
+  "forbiddenTerms": [
+    "颠覆",
+    "独一无二",
+    "蓝海",
+    "众所周知",
+    "前景广阔",
+    "填补空白",
+    "我们学校",
+    "老师说",
+    "据统计",
+    "预计将",
+    "史无前例"
+  ],
+  "advertisingLawTerms": [
+    "最佳",
+    "最好",
+    "最优",
+    "最先进",
+    "第一",
+    "第一品牌",
+    "全网第一",
+    "行业第一",
+    "最高级",
+    "顶级",
+    "国家级",
+    "世界级",
+    "唯一",
+    "独家",
+    "极致",
+    "首选",
+    "100%"
+  ],
+  "weakTermsPer100": 0.1,
+  "anonymityRegex": "(大学|学院|University|College|校徽|指导教师|导师|学号|1[3-9]\\d{9}|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,})",
+  "anonymityWhitelist": [
+    "大学生",
+    "学院派",
+    "商学院案例",
+    "University of",
+    "创业导师",
+    "行业导师",
+    "导师制",
+    "出版社",
+    "研究院",
+    "科学院",
+    "社科院",
+    "医院",
+    "法院"
+  ],
+  "pitch": {
+    "minutes": 10,
+    "deckPages": [
+      18,
+      20
+    ],
+    "deckPagesAppendixMax": 4,
+    "scriptWords": [
+      1650,
+      1950
+    ],
+    "qaMin": 40,
+    "qaDimensions": [
+      "市场与数据",
+      "定位与创意",
+      "执行与渠道",
+      "财务与预算",
+      "团队与资源",
+      "风险与合规"
+    ]
+  },
+  "advertisingLawWhitelist": [
+    "最低点",
+    "最近",
+    "最终",
+    "最小",
+    "最大值",
+    "最高值",
+    "首选渠道",
+    "第一年",
+    "第一阶段",
+    "第一批",
+    "第一季度",
+    "前三",
+    "唯一标识"
+  ],
+  "weakTerms": [
+    "较好",
+    "较高",
+    "较大",
+    "显著",
+    "良好",
+    "合理",
+    "有效",
+    "明显",
+    "一定程度"
+  ],
+  "syntheticMarkerCoverage": 1.0
+}

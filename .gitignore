@@ -1,0 +1,28 @@
+node_modules/
+dist/
+workspace/
+.venv/
+__pycache__/
+*.pyc
+.cache/
+.claude-home/
+*.log
+.env
+.env.*
+tmp_*
+.DS_Store
+Thumbs.db
+# 调研原始文件（172 MB，官方 PDF/DOC；需要时按 docs/research/01_赛事情报.md §6 的 URL 下载）
+docs/research/raw/
+# 工具包示例工作区的渲染产物（测试会重新生成）
+agent/toolkit/examples/**/产出/
+agent/toolkit/examples/**/08_提交包/
+agent/toolkit/examples/**/04_图表/*.png
+agent/toolkit/examples/**/04_图表/index.json
+agent/toolkit/examples/**/*.xlsx
+agent/toolkit/examples/**/*.pptx
+agent/toolkit/examples/**/*.docx
+agent/toolkit/examples/**/*.pdf
+!agent/toolkit/examples/**/inputs/*
+# 构建器完成标记
+*_DONE.txt

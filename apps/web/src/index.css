@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+    --range-fill: #14305c;
+    --range-track: #e2e8f0;
+  }
+  .dark {
+    color-scheme: dark;
+    --range-fill: #c9a227;
+    --range-track: #334155;
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-surface text-slate-800 antialiased dark:bg-surface-dark dark:text-slate-200;
+    font-feature-settings: 'tnum' 1, 'cv11' 1;
+  }
+  ::selection {
+    @apply bg-gold-200 text-brand-800;
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(91, 107, 130, 0.35) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-steel-300/60 dark:bg-steel-600/60;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-xl border border-slate-200/80 bg-white shadow-card dark:border-surface-dark-border dark:bg-surface-dark-card dark:shadow-card-dark;
+  }
+  .card-hover {
+    @apply transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card-hover hover:border-brand-200 dark:hover:border-brand-400/50;
+  }
+  .input {
+    @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-100 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400 dark:border-surface-dark-border dark:bg-surface-dark dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-brand-300 dark:focus:ring-brand-400/20 dark:disabled:bg-slate-900;
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300;
+  }
+  .hint {
+    @apply mt-1.5 text-xs text-steel-500 dark:text-steel-400;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs text-slate-600 dark:border-surface-dark-border dark:bg-slate-800/60 dark:text-slate-300;
+  }
+  .kbd {
+    @apply rounded border border-slate-300 bg-slate-50 px-1.5 py-0.5 font-mono text-[11px] text-slate-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300;
+  }
+  .nav-item {
+    @apply flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-brand-100/80 transition hover:bg-white/10 hover:text-white;
+  }
+  .nav-item-active {
+    @apply bg-white/15 text-white shadow-inner ring-1 ring-white/10;
+  }
+  .table-base {
+    @apply w-full border-collapse text-sm;
+  }
+  .table-base th {
+    @apply sticky top-0 z-10 border-b border-slate-200 bg-slate-50 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-steel-600 dark:border-surface-dark-border dark:bg-slate-800/80 dark:text-steel-300;
+  }
+  .table-base td {
+    @apply border-b border-slate-100 px-3 py-2 align-top text-slate-700 dark:border-surface-dark-border/60 dark:text-slate-300;
+  }
+  .table-base tr:hover td {
+    @apply bg-slate-50/70 dark:bg-slate-800/40;
+  }
+  .prose-biz {
+    @apply prose prose-slate max-w-none dark:prose-invert prose-headings:scroll-mt-20 prose-headings:font-semibold prose-h1:text-2xl prose-h2:text-xl prose-h2:border-b prose-h2:border-slate-200 prose-h2:pb-1.5 dark:prose-h2:border-surface-dark-border prose-h3:text-base prose-a:text-brand-500 prose-a:no-underline hover:prose-a:underline prose-blockquote:border-gold-400 prose-blockquote:bg-gold-50/60 prose-blockquote:py-0.5 prose-blockquote:not-italic dark:prose-blockquote:bg-gold-900/10 prose-table:text-sm prose-th:bg-slate-50 dark:prose-th:bg-slate-800 prose-th:px-3 prose-th:py-1.5 prose-td:px-3 prose-td:py-1.5 prose-img:rounded-lg prose-img:border prose-img:border-slate-200 dark:prose-img:border-surface-dark-border prose-code:rounded prose-code:bg-slate-100 prose-code:px-1 prose-code:py-0.5 prose-code:font-normal prose-code:before:content-none prose-code:after:content-none dark:prose-code:bg-slate-800 prose-pre:bg-slate-900 prose-pre:text-slate-100;
+  }
+  .prose-stream {
+    @apply prose prose-sm prose-slate max-w-none dark:prose-invert prose-p:my-1.5 prose-ul:my-1.5 prose-ol:my-1.5 prose-li:my-0.5 prose-headings:my-2 prose-table:my-2 prose-table:text-xs prose-th:px-2 prose-th:py-1 prose-td:px-2 prose-td:py-1 prose-pre:my-2 prose-code:before:content-none prose-code:after:content-none;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}

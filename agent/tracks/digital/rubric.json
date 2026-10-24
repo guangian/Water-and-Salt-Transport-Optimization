@@ -1,0 +1,195 @@
+{
+  "track": "digital",
+  "name": "数字营销方案评审量规",
+  "scale": "每维 1–5 分；总分 = Σ(得分 ÷ 5 × 权重)",
+  "targetScore": 85,
+  "minDimension": 3,
+  "officialMapping": "官方 6 项各 10 分依次对应 analysis / insight / channel / data / plan / innovation",
+  "dimensions": [
+    {
+      "id": "analysis",
+      "name": "分析全面性与深度",
+      "weight": 16,
+      "official": "分析全面性与深度 10",
+      "anchors": {
+        "1": "泛泛而谈、无一手数据",
+        "3": "企业与市场分析齐全但洞察平庸",
+        "5": "企业数字资产盘点 + 用户群体 / 文化偏好 / 消费习惯 / 政策法规均有数据 + 一手调研 + 竞品案例 ≥ 3"
+      },
+      "machineCapRules": [
+        {
+          "check": "has_primary_research",
+          "when": "fail",
+          "cap": 2
+        },
+        {
+          "check": "has_competitor_matrix",
+          "when": "fail",
+          "cap": 3
+        }
+      ],
+      "officialWeight": 10
+    },
+    {
+      "id": "insight",
+      "name": "用户洞察与策略定位",
+      "weight": 16,
+      "official": "用户洞察与策略定位 10",
+      "anchors": {
+        "1": "无画像、无定位",
+        "3": "有画像但洞察 = 常识",
+        "5": "画像 + 洞察句 + 人群 × 场景 × 平台矩阵 + 定位陈述 + Big Idea 可复述"
+      },
+      "machineCapRules": [
+        {
+          "check": "big_idea",
+          "when": "fail",
+          "cap": 2
+        }
+      ],
+      "officialWeight": 10
+    },
+    {
+      "id": "channel",
+      "name": "策略可行性与渠道匹配度",
+      "weight": 16,
+      "official": "策略可行性与渠道匹配度 10",
+      "anchors": {
+        "1": "全平台撒网",
+        "3": "有平台选择但无机制说明",
+        "5": "平台角色与算法机制匹配表 + 内容形态 + KOL/KOC 分层 + 短视频脚本可拍 + 实施步骤"
+      },
+      "machineCapRules": [
+        {
+          "check": "platform_matrix",
+          "when": "fail",
+          "cap": 3
+        },
+        {
+          "check": "short_video_script",
+          "when": "fail",
+          "cap": 3
+        }
+      ],
+      "officialWeight": 10
+    },
+    {
+      "id": "data",
+      "name": "数据逻辑与评估机制",
+      "weight": 16,
+      "official": "数据逻辑与评估机制 10",
+      "anchors": {
+        "1": "只有曝光目标",
+        "3": "有漏斗无测算逻辑",
+        "5": "浏览 / 互动 / 转化漏斗带测算逻辑 + 基线 + 工具 + 复盘机制 + 数据来源口径（含模拟标注）"
+      },
+      "machineCapRules": [
+        {
+          "check": "kpi_table",
+          "when": "fail",
+          "cap": 2
+        }
+      ],
+      "officialWeight": 10
+    },
+    {
+      "id": "plan",
+      "name": "执行计划与预算合理性",
+      "weight": 16,
+      "official": "执行计划与财务预算合理性 10",
+      "anchors": {
+        "1": "无排期、预算一笔总数",
+        "3": "有排期与预算但单价无来源",
+        "5": "三阶段排期 + 分工 + 预算 = Σ 单价 × 量（刊例来源）+ 机动金 + 风险应急"
+      },
+      "machineCapRules": [
+        {
+          "check": "budget_recalc",
+          "when": "fail",
+          "cap": 2
+        }
+      ],
+      "officialWeight": 10
+    },
+    {
+      "id": "innovation",
+      "name": "方案创新性与价值",
+      "weight": 12,
+      "official": "方案创新性与价值 10",
+      "anchors": {
+        "1": "沿用企业现有做法",
+        "3": "有创意但孤立",
+        "5": "内容创意机制（话题 / 挑战 / UGC）+ 与企业现状差异 + 可持续价值"
+      },
+      "machineCapRules": [],
+      "officialWeight": 10
+    },
+    {
+      "id": "structure",
+      "name": "结构规范与文风",
+      "weight": 8,
+      "official": "展示：内容完整程度",
+      "anchors": {
+        "1": "缺要素",
+        "3": "9 要素齐全但引用不规范",
+        "5": "9 要素齐全 + 来源配对 + 禁语 0 + 合规清单"
+      },
+      "machineCapRules": [
+        {
+          "check": "struct_coverage",
+          "when": "fail",
+          "cap": 2
+        },
+        {
+          "check": "forbidden_terms",
+          "when": "fail",
+          "cap": 3
+        }
+      ],
+      "officialWeight": 0
+    }
+  ],
+  "pitchDimensions": [
+    {
+      "id": "deck",
+      "name": "路演 PPT",
+      "weight": 50,
+      "anchors": {
+        "1": "顺序随意、整页文字",
+        "3": "关键页齐全但无钩子",
+        "5": "18–20 页、一页一结论句、每页 ≥ 1 个数字、图表 ≥ 8、与书面材料数字一致"
+      }
+    },
+    {
+      "id": "script",
+      "name": "讲稿与时间",
+      "weight": 25,
+      "anchors": {
+        "1": "超时或流水账",
+        "3": "字数合适但段落平均",
+        "5": "1650–1950 字、前 150 字钩子、每段首句结论、结尾回扣"
+      }
+    },
+    {
+      "id": "qa",
+      "name": "答辩准备",
+      "weight": 25,
+      "anchors": {
+        "1": "无题库",
+        "3": "< 20 题",
+        "5": "≥ 40 题六维度、三段式、主答人"
+      }
+    }
+  ],
+  "hardGates": [
+    "anonymity_hits",
+    "page_limit",
+    "cover_fields",
+    "cross_doc_consistency",
+    "forbidden_terms_adlaw"
+  ],
+  "version": "2026.1",
+  "officialPitchTotal": 40,
+  "officialWrittenTotal": 60,
+  "officialEstimateRule": "written = Σ(score ÷ 5 × officialWeight)；pitch = Σ pitchDimensions(score ÷ 5 × weight) × officialPitchTotal ÷ 100；total = written + pitch"
+}

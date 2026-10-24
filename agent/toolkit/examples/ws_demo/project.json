@@ -1,0 +1,37 @@
+{
+  "id": "p_demo_hongbao",
+  "name": "宋韵天青——弘宝汝瓷品牌策划书",
+  "teamName": "青瓷工作室",
+  "track": "brand",
+  "group": "本科组",
+  "subject": {
+    "type": "brand",
+    "name": "弘宝汝瓷",
+    "company": "汝州市弘宝汝瓷坊有限公司",
+    "isAssignedCase": false,
+    "caseTitle": "",
+    "brief": "汝州非遗汝瓷品牌的年轻化与线上化升级策划。",
+    "region": "河南汝州",
+    "industry": "非遗工艺品 / 文创"
+  },
+  "team": [
+    { "role": "队长/总策划", "major": "市场营销", "strength": "品牌传播" },
+    { "role": "财务建模", "major": "会计学", "strength": "财务分析" }
+  ],
+  "params": {
+    "researchMode": "synthetic",
+    "pageTarget": 60,
+    "pitchMinutes": 10,
+    "reviewRounds": 3,
+    "targetScore": 85,
+    "language": "zh-CN"
+  },
+  "inputs": [],
+  "status": "idle",
+  "artifacts": {
+    "book": "产出/弘宝汝瓷品牌策划书.docx",
+    "pdf": "产出/弘宝汝瓷品牌策划书.pdf",
+    "deck": "产出/路演.pptx",
+    "model": "03_财务/财务模型.xlsx"
+  }
+}

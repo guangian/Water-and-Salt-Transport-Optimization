@@ -1,0 +1,265 @@
+{
+  "track": "startup",
+  "name": "商业计划书评审量规（国金口径）",
+  "scale": "每维 1–5 分：1 不可接受 / 3 省赛合格 / 5 国金水平；总分 = Σ(得分 ÷ 5 × 权重)",
+  "targetScore": 85,
+  "minDimension": 3,
+  "officialMapping": "官方 60 分口径：创新性 20 = innovation（含产品与技术方案）；商业性 30 = market 8 + competition 6 + bizmodel 8 + marketing 4 + finance 4；团队 10 = team；structure / risk_social / style 为内部维度（officialWeight 0）",
+  "dimensions": [
+    {
+      "id": "structure",
+      "name": "结构完整与逻辑",
+      "weight": 10,
+      "official": "展示陈述：内容是否缺失、计划是否完整",
+      "anchors": {
+        "1": "缺 ≥ 3 个必备章节或顺序混乱",
+        "3": "13 章齐全但章间结论不衔接",
+        "5": "13 章齐全、执行摘要一页涵盖 8 要素、章间结论互相引用"
+      },
+      "machineCapRules": [
+        {
+          "check": "struct_coverage",
+          "when": "fail",
+          "cap": 2
+        }
+      ],
+      "officialWeight": 0
+    },
+    {
+      "id": "market",
+      "name": "痛点与市场（含一手调研）",
+      "weight": 15,
+      "official": "商业性：目标市场与客户定位；行业调研与一手资料",
+      "anchors": {
+        "1": "无一手调研、市场只有 TAM",
+        "3": "有问卷但样本 < 200 或无方法说明；TAM/SAM/SOM 单法",
+        "5": "样本 ≥ 384 且方法 / 时间 / 有效率齐全；双法 TAM/SAM/SOM 并调和；痛点 ≤ 4 且每个有数据"
+      },
+      "machineCapRules": [
+        {
+          "check": "has_primary_research",
+          "when": "fail",
+          "cap": 2
+        },
+        {
+          "check": "has_tam_sam_som",
+          "when": "fail",
+          "cap": 3
+        }
+      ],
+      "officialWeight": 8
+    },
+    {
+      "id": "innovation",
+      "name": "产品创新与壁垒",
+      "weight": 15,
+      "official": "创新性 20",
+      "anchors": {
+        "1": "只有功能描述，无对比无证据",
+        "3": "有参数对比表或知识产权，但二者缺一",
+        "5": "参数对比表 + 知识产权清单（匿名）+ 第三方验证 + 迭代路线"
+      },
+      "machineCapRules": [
+        {
+          "check": "param_compare_table",
+          "when": "fail",
+          "cap": 3
+        }
+      ],
+      "officialWeight": 20
+    },
+    {
+      "id": "competition",
+      "name": "竞争分析",
+      "weight": 8,
+      "official": "商业性：竞争对手分析",
+      "anchors": {
+        "1": "无竞品或声称无竞争者",
+        "3": "有竞品列表但维度 < 5 或无来源",
+        "5": "3–5 家 × 5–8 维矩阵 + 定位图 + 自身短板与应对"
+      },
+      "machineCapRules": [
+        {
+          "check": "has_competitor_matrix",
+          "when": "fail",
+          "cap": 2
+        }
+      ],
+      "officialWeight": 6
+    },
+    {
+      "id": "bizmodel",
+      "name": "商业模式与单位经济",
+      "weight": 12,
+      "official": "商业性：商业模式完整可行；盈利模式清晰",
+      "anchors": {
+        "1": "无收费逻辑",
+        "3": "有画布与收入流，但无单位经济",
+        "5": "画布 + 收入公式 + CAC / LTV / 毛利率 / 回收期四指标 + 行业对标"
+      },
+      "machineCapRules": [
+        {
+          "check": "has_unit_economics",
+          "when": "fail",
+          "cap": 3
+        }
+      ],
+      "officialWeight": 8
+    },
+    {
+      "id": "marketing",
+      "name": "营销与运营计划",
+      "weight": 8,
+      "official": "商业性：营销与渠道策略可操作",
+      "anchors": {
+        "1": "全渠道空谈",
+        "3": "有渠道与预算，无转化率或无里程碑",
+        "5": "漏斗（各层转化率 + 来源）+ 渠道预算 + 12–36 月甘特图 + 已完成事项清单"
+      },
+      "machineCapRules": [
+        {
+          "check": "milestone_gantt",
+          "when": "fail",
+          "cap": 3
+        }
+      ],
+      "officialWeight": 4
+    },
+    {
+      "id": "team",
+      "name": "团队与股权",
+      "weight": 8,
+      "official": "团队架构 10",
+      "anchors": {
+        "1": "头衔罗列",
+        "3": "有分工无成果证据或无股权表",
+        "5": "背景 – 分工 – 成果三栏 + 组织架构 + 股权表（创始团队 > 51%、法定代表人 ≥ 10%）+ 缺口与补齐"
+      },
+      "machineCapRules": [
+        {
+          "check": "equity_table",
+          "when": "fail",
+          "cap": 3
+        }
+      ],
+      "officialWeight": 10
+    },
+    {
+      "id": "finance",
+      "name": "财务与融资",
+      "weight": 14,
+      "official": "商业性：盈利模式；国创赛创业组财务管理",
+      "anchors": {
+        "1": "只有收入利润两行",
+        "3": "三表齐全但无假设来源或无敏感性",
+        "5": "假设表（≥ 10 条带来源）+ 驱动因子收入 + 三表勾稽 + 盈亏平衡 + 三情景 / 敏感性 + 融资三件套一致 + ≥ 2 种估值法"
+      },
+      "machineCapRules": [
+        {
+          "check": "three_statement_check",
+          "when": "fail",
+          "cap": 2
+        },
+        {
+          "check": "financing_consistency",
+          "when": "fail",
+          "cap": 2
+        },
+        {
+          "check": "has_sensitivity",
+          "when": "fail",
+          "cap": 3
+        }
+      ],
+      "officialWeight": 4
+    },
+    {
+      "id": "risk_social",
+      "name": "风险与社会价值",
+      "weight": 5,
+      "official": "挑战杯社会价值 / 国创赛产业价值",
+      "anchors": {
+        "1": "模板风险、无社会价值",
+        "3": "风险 ≥ 6 项但无触发指标；社会价值定性",
+        "5": "风险矩阵（概率 × 影响 + 对策 + 触发指标）+ 就业 / 增收等量化口径"
+      },
+      "machineCapRules": [
+        {
+          "check": "risk_matrix",
+          "when": "fail",
+          "cap": 3
+        }
+      ],
+      "officialWeight": 0
+    },
+    {
+      "id": "style",
+      "name": "数据规范与文风",
+      "weight": 5,
+      "official": "答辩：内容真实可信，运用事实论据",
+      "anchors": {
+        "1": "大量“据统计”无来源、禁语密集",
+        "3": "多数数据有来源但格式不统一",
+        "5": "每数四要素、GB/T 7714、图表均有来源与结论、禁语 = 0、图表 ≥ 15"
+      },
+      "machineCapRules": [
+        {
+          "check": "forbidden_terms",
+          "when": "fail",
+          "cap": 3
+        },
+        {
+          "check": "source_count",
+          "when": "fail",
+          "cap": 3
+        }
+      ],
+      "officialWeight": 0
+    }
+  ],
+  "pitchDimensions": [
+    {
+      "id": "deck",
+      "name": "路演 PPT",
+      "weight": 50,
+      "anchors": {
+        "1": "顺序随意、整页文字",
+        "3": "关键页齐全但无钩子",
+        "5": "20–24 页、一页一结论句、每页 ≥ 1 个数字、图表 ≥ 8、与 BP 数字一致"
+      }
+    },
+    {
+      "id": "script",
+      "name": "讲稿与时间",
+      "weight": 25,
+      "anchors": {
+        "1": "超时或流水账",
+        "3": "字数合适但段落平均",
+        "5": "1650–1950 字、前 150 字钩子、每段首句结论、最后 60 秒讲融资与愿景"
+      }
+    },
+    {
+      "id": "qa",
+      "name": "答辩准备",
+      "weight": 25,
+      "anchors": {
+        "1": "无题库",
+        "3": "< 20 题",
+        "5": "≥ 40 题六维度、三段式、主答人"
+      }
+    }
+  ],
+  "hardGates": [
+    "anonymity_hits",
+    "page_limit",
+    "word_min",
+    "cover_fields",
+    "cross_doc_consistency",
+    "financing_consistency",
+    "forbidden_terms_adlaw"
+  ],
+  "version": "2026.1",
+  "officialPitchTotal": 40,
+  "officialWrittenTotal": 60,
+  "officialEstimateRule": "written = Σ(score ÷ 5 × officialWeight)；pitch = Σ pitchDimensions(score ÷ 5 × weight) × officialPitchTotal ÷ 100；total = written + pitch"
+}

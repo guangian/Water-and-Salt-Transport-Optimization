@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": ["Read", "Write", "Edit", "Bash", "Grep", "Glob", "Agent", "Skill", "mcp__bizgold__*"],
+    "deny": ["Read(./inputs/_preread/**/*.bin)"]
+  },
+  "env": { "PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8" },
+  "skipWebFetchPreflight": true
+}

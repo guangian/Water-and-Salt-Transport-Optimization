@@ -1,0 +1,36 @@
+{
+  "id": "p_demo_ruci_startup",
+  "name": "一釉生万象——汝瓷文创创业计划",
+  "teamName": "青瓷工作室",
+  "track": "startup",
+  "group": "创业组",
+  "subject": {
+    "type": "startup",
+    "name": "弘宝文创",
+    "company": "汝州市弘宝汝瓷坊有限公司",
+    "isAssignedCase": false,
+    "caseTitle": "",
+    "brief": "以天青釉汝瓷为核心资产，开发 168–598 元价格带的茶器 / 香器 / 花器日用文创，直播电商 + 企业定制双渠道。",
+    "region": "河南汝州",
+    "industry": "非遗工艺品 / 文创"
+  },
+  "team": [
+    { "role": "总策划 / CEO", "major": "市场营销", "strength": "品牌与渠道" },
+    { "role": "产品设计", "major": "工业设计", "strength": "器型与釉色" },
+    { "role": "财务与运营", "major": "会计学", "strength": "财务建模" },
+    { "role": "内容与直播", "major": "新媒体", "strength": "短视频运营" }
+  ],
+  "params": {
+    "researchMode": "synthetic",
+    "pageTarget": 60,
+    "pitchMinutes": 10,
+    "reviewRounds": 3,
+    "targetScore": 85,
+    "language": "zh-CN"
+  },
+  "inputs": [],
+  "status": "idle",
+  "artifacts": {
+    "deck": "产出/路演.pptx"
+  }
+}

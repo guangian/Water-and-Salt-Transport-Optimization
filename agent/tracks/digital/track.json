@@ -1,0 +1,65 @@
+{
+  "id": "digital",
+  "name": "数字营销赛道",
+  "competition": "全国高校商业精英挑战赛 品牌策划竞赛",
+  "docName": "数字营销方案",
+  "docType": "策划案",
+  "financeMode": "budget",
+  "pageLimit": 80,
+  "pageTargetDefault": 55,
+  "wordMin": 0,
+  "scoring": {
+    "written": 60,
+    "pitch": 40,
+    "writtenItems": [
+      "分析全面性与深度 10",
+      "用户洞察与策略定位 10",
+      "策略可行性与渠道匹配度 10",
+      "数据逻辑与评估机制 10",
+      "执行计划与财务预算合理性 10",
+      "方案创新性与价值 10"
+    ],
+    "pitchItems": [
+      "内容完整程度 5",
+      "评委提问应答表现 5",
+      "论述和决策确认的清晰程度 5",
+      "结论的正确有效性 5",
+      "对问题的切题回应度 5",
+      "演讲专业程度（含 PPT）5",
+      "谈吐清晰有条理举止得体 5",
+      "时间分配与团队配合 5"
+    ],
+    "preliminary": "预选赛：短视频 40 + 方案 60"
+  },
+  "elements": [
+    "目录",
+    "概要",
+    "引言",
+    "目标企业分析",
+    "市场分析",
+    "数字营销策略制定",
+    "执行计划与预算",
+    "数字营销效果",
+    "附录和参考资料"
+  ],
+  "groups": [
+    "研究生组",
+    "本科组",
+    "高职组"
+  ],
+  "subjectTypes": [
+    "brand"
+  ],
+  "pitch": {
+    "minutes": 10,
+    "qaMinutes": 5,
+    "videoMinutes": 10,
+    "deckPages": [
+      18,
+      20
+    ],
+    "shortVideoMinutes": 3
+  },
+  "assignedCases": [],
+  "sourceNote": "2026 数字营销赛道细则见 knowledge/评分表与扣分细则.md"
+}

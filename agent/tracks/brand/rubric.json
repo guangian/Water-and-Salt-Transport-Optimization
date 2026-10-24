@@ -1,0 +1,225 @@
+{
+  "track": "brand",
+  "name": "品牌策划书评审量规（国金口径）",
+  "scale": "每维 1–5 分：1 不可接受 / 3 省赛合格 / 5 国金水平；总分 = Σ(得分 ÷ 5 × 权重)",
+  "targetScore": 85,
+  "minDimension": 3,
+  "officialMapping": "官方 60 分口径：现状 10 / 定位 10 / 元素 10 / 传播 10 / 保护与风险 10 / 预算 10；评委在 officialEstimate.written 中按此换算，pitch 按 PPT + 讲稿 + 题库估 40 分",
+  "dimensions": [
+    {
+      "id": "status",
+      "name": "现状分析（市场 / 消费者 / 品牌诊断）",
+      "weight": 16,
+      "official": "品牌现状分析的准确性 10",
+      "anchors": {
+        "1": "泛 PEST、无一手数据、罗列企业荣誉",
+        "3": "有调研与品类数据但洞察等于常识；竞品维度不足",
+        "5": "一手调研（样本 ≥ 384 + 访谈 ≥ 8 + 实地）+ 品牌资产数据 + 洞察句（人群 + 场景 + 冲突）+ 问题树 ≤ 3 + 竞品 3–5 家 × ≥ 6 维"
+      },
+      "machineCapRules": [
+        {
+          "check": "has_primary_research",
+          "when": "fail",
+          "cap": 2
+        },
+        {
+          "check": "has_competitor_matrix",
+          "when": "fail",
+          "cap": 3
+        }
+      ],
+      "officialWeight": 10
+    },
+    {
+      "id": "positioning",
+      "name": "定位与核心价值",
+      "weight": 14,
+      "official": "品牌定位的正确性 10",
+      "anchors": {
+        "1": "定位空泛、无细分",
+        "3": "有 STP 但缺竞争对手异同或缺验证",
+        "5": "五步链完整 + 定位陈述句 + 二维定位图（≥ 4 竞品）+ 核心价值企业 / 顾客双验证数据 + 品牌屋"
+      },
+      "machineCapRules": [
+        {
+          "check": "positioning_statement",
+          "when": "fail",
+          "cap": 3
+        }
+      ],
+      "officialWeight": 10
+    },
+    {
+      "id": "creative",
+      "name": "创意与品牌元素",
+      "weight": 14,
+      "official": "品牌元素设计的创意性 10",
+      "anchors": {
+        "1": "只换 LOGO、无创意主张",
+        "3": "有 Big Idea 但未延展或不可注册",
+        "5": "Big Idea 一页（主张 + 视觉锤 + 语言钉）+ 元素 ≥ 4 类设计说明 + 色板字体规范 + 商标检索 + 延展 ≥ 3 渠道 + 1 线下 + 与竞品主题差异对照"
+      },
+      "machineCapRules": [
+        {
+          "check": "big_idea",
+          "when": "fail",
+          "cap": 2
+        }
+      ],
+      "officialWeight": 10
+    },
+    {
+      "id": "promotion",
+      "name": "传播执行可行性",
+      "weight": 16,
+      "official": "品牌推广与传播的可行性 10",
+      "anchors": {
+        "1": "全渠道空谈、无样稿",
+        "3": "有渠道与内容但无 KOL 分层或无线下",
+        "5": "阶段 × 渠道 × 内容总图 + KOL 分层清单 + 样稿 ≥ 5 + 线下 ≥ 1 + 每动作五要素 + ICC / 广告法自检"
+      },
+      "machineCapRules": [
+        {
+          "check": "kol_tiers",
+          "when": "fail",
+          "cap": 3
+        },
+        {
+          "check": "offline_event",
+          "when": "fail",
+          "cap": 3
+        }
+      ],
+      "officialWeight": 10
+    },
+    {
+      "id": "budget",
+      "name": "预算与效果评估",
+      "weight": 14,
+      "official": "财务预算的合理性 10",
+      "anchors": {
+        "1": "预算一笔总数、KPI 只有曝光",
+        "3": "有预算表但单价无依据；KPI 无基线",
+        "5": "预算 = Σ 单价 × 量且单价有来源 + 机动金 5–10% + ≤ 命题上限 + KPI 漏斗 ≥ 5 层（基线 / 目标 / 工具 / 周期）+ ROI + 敏感性"
+      },
+      "machineCapRules": [
+        {
+          "check": "budget_recalc",
+          "when": "fail",
+          "cap": 2
+        },
+        {
+          "check": "kpi_table",
+          "when": "fail",
+          "cap": 3
+        }
+      ],
+      "officialWeight": 10
+    },
+    {
+      "id": "protection",
+      "name": "品牌资产保护与风险",
+      "weight": 10,
+      "official": "品牌资产保护及风险管理的全面性 10",
+      "anchors": {
+        "1": "缺章或只写“加强监测”",
+        "3": "有商标计划或舆情预案之一",
+        "5": "资产清单 + 注册计划 + 舆情 SOP（含时限）+ 风险矩阵 ≥ 6（概率 × 影响 + 对策 + 触发指标）"
+      },
+      "machineCapRules": [
+        {
+          "check": "risk_matrix",
+          "when": "fail",
+          "cap": 2
+        }
+      ],
+      "officialWeight": 10
+    },
+    {
+      "id": "structure",
+      "name": "结构、规范与文风",
+      "weight": 8,
+      "official": "展示：内容完整程度 5",
+      "anchors": {
+        "1": "缺要素、数据无来源",
+        "3": "10 要素齐全但引用不规范",
+        "5": "10 要素齐全 + 概要一页 + 每图表有来源 + GB/T 7714 + 问卷入附录 + 禁语 0 + 数值密度达标"
+      },
+      "machineCapRules": [
+        {
+          "check": "struct_coverage",
+          "when": "fail",
+          "cap": 2
+        },
+        {
+          "check": "forbidden_terms",
+          "when": "fail",
+          "cap": 3
+        }
+      ],
+      "officialWeight": 0
+    },
+    {
+      "id": "fit",
+      "name": "命题契合与创新",
+      "weight": 8,
+      "official": "细则：务必具有创新性，不可过多陈述企业现有成就",
+      "anchors": {
+        "1": "偏离命题或复述企业现状",
+        "3": "契合命题但创意常规",
+        "5": "命题目标逐条回应 + 创意与竞品传播主题不同 + 标题范式 + 年轻化 / 文化叙事有数据支撑"
+      },
+      "machineCapRules": [
+        {
+          "check": "brief_response_table",
+          "when": "fail",
+          "cap": 2
+        }
+      ],
+      "officialWeight": 0
+    }
+  ],
+  "pitchDimensions": [
+    {
+      "id": "deck",
+      "name": "路演 PPT",
+      "weight": 50,
+      "anchors": {
+        "1": "顺序随意、整页文字",
+        "3": "关键页齐全但无钩子",
+        "5": "18–20 页、一页一结论句、每页 ≥ 1 个数字、图表 ≥ 8、与策划书数字一致"
+      }
+    },
+    {
+      "id": "script",
+      "name": "讲稿与时间",
+      "weight": 25,
+      "anchors": {
+        "1": "超时或流水账",
+        "3": "字数合适但段落平均",
+        "5": "1650–1950 字、前 150 字钩子、每段首句结论、结尾回扣"
+      }
+    },
+    {
+      "id": "qa",
+      "name": "答辩准备",
+      "weight": 25,
+      "anchors": {
+        "1": "无题库",
+        "3": "< 20 题",
+        "5": "≥ 40 题六维度、三段式、主答人"
+      }
+    }
+  ],
+  "hardGates": [
+    "anonymity_hits",
+    "page_limit",
+    "cover_fields",
+    "cross_doc_consistency",
+    "forbidden_terms_adlaw"
+  ],
+  "version": "2026.1",
+  "officialPitchTotal": 40,
+  "officialWrittenTotal": 60,
+  "officialEstimateRule": "written = Σ(score ÷ 5 × officialWeight)；pitch = Σ pitchDimensions(score ÷ 5 × weight) × officialPitchTotal ÷ 100；total = written + pitch"
+}

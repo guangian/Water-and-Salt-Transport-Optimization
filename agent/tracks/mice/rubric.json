@@ -1,0 +1,185 @@
+{
+  "track": "mice",
+  "name": "会奖旅游策划方案评审量规",
+  "scale": "每维 1–5 分；总分 = Σ(得分 ÷ 5 × 权重)",
+  "targetScore": 85,
+  "minDimension": 3,
+  "officialMapping": "官方 6 项各 10 分：原创与结构 / 合理性与逻辑 / 活动与目标一致 / 新颖创意 / 排版可读 / 预算合理",
+  "dimensions": [
+    {
+      "id": "structure",
+      "name": "内容原创性与结构完整性",
+      "weight": 16,
+      "official": "内容原创性和结构完整性 10",
+      "anchors": {
+        "1": "缺要素或模板化",
+        "3": "10 要素齐全但原创性弱",
+        "5": "10 要素齐全 + 客户画像与目标清晰 + 原创主题"
+      },
+      "machineCapRules": [
+        {
+          "check": "struct_coverage",
+          "when": "fail",
+          "cap": 2
+        }
+      ],
+      "officialWeight": 10
+    },
+    {
+      "id": "logic",
+      "name": "策划合理性与逻辑性（可行性）",
+      "weight": 18,
+      "official": "策划合理性与逻辑性 10",
+      "anchors": {
+        "1": "场地交通未核查",
+        "3": "有可行性分析但缺库存 / 容量核查",
+        "5": "目的地评分 + 场地容量核查（≥ 300 人）+ 交通方案 + 季节与政策 + 供应商资源"
+      },
+      "machineCapRules": [
+        {
+          "check": "venue_capacity_check",
+          "when": "fail",
+          "cap": 3
+        }
+      ],
+      "officialWeight": 10
+    },
+    {
+      "id": "alignment",
+      "name": "活动安排与目标一致性（行程）",
+      "weight": 18,
+      "official": "活动安排与目标一致性 10",
+      "anchors": {
+        "1": "行程松散",
+        "3": "四天三夜齐全但与目标脱节",
+        "5": "逐时段日程（30 分钟颗粒）+ 每活动对应目标 + 动线与分组 + 备选"
+      },
+      "machineCapRules": [
+        {
+          "check": "itinerary_timeline",
+          "when": "fail",
+          "cap": 2
+        }
+      ],
+      "officialWeight": 10
+    },
+    {
+      "id": "creativity",
+      "name": "新颖与创意性（主题与特色）",
+      "weight": 14,
+      "official": "新颖与创意性 10",
+      "anchors": {
+        "1": "无主题",
+        "3": "有主题但未贯穿",
+        "5": "主题双关联（企业文化 + 目的地文化）+ 视觉系统 + 亮点 3–5 个 + 对照"
+      },
+      "machineCapRules": [],
+      "officialWeight": 10
+    },
+    {
+      "id": "budget",
+      "name": "财务预算合理性",
+      "weight": 16,
+      "official": "财务预算合理性 10",
+      "anchors": {
+        "1": "总数拍脑袋",
+        "3": "有明细无来源",
+        "5": "单价 × 量 + 来源 + 人均 + 机动金 + 200–400 万内 + 敏感性"
+      },
+      "machineCapRules": [
+        {
+          "check": "budget_recalc",
+          "when": "fail",
+          "cap": 2
+        },
+        {
+          "check": "budget_in_range",
+          "when": "fail",
+          "cap": 1
+        }
+      ],
+      "officialWeight": 10
+    },
+    {
+      "id": "risk",
+      "name": "突发事件预案",
+      "weight": 10,
+      "official": "策划合理性（应急）",
+      "anchors": {
+        "1": "缺",
+        "3": "< 8 类或无时限",
+        "5": "≥ 8 类 + 分级时限 + 责任人 + 保险"
+      },
+      "machineCapRules": [
+        {
+          "check": "contingency",
+          "when": "fail",
+          "cap": 2
+        }
+      ],
+      "officialWeight": 0
+    },
+    {
+      "id": "effect",
+      "name": "预计效果与排版可读性",
+      "weight": 8,
+      "official": "排版设计与可读性 10 / 预计效果",
+      "anchors": {
+        "1": "无指标",
+        "3": "有指标无方法",
+        "5": "KPI 表 + 评估方法 + 宣传视频传播计划 + 版式清晰"
+      },
+      "machineCapRules": [
+        {
+          "check": "kpi_table",
+          "when": "fail",
+          "cap": 3
+        }
+      ],
+      "officialWeight": 10
+    }
+  ],
+  "pitchDimensions": [
+    {
+      "id": "deck",
+      "name": "路演 PPT",
+      "weight": 50,
+      "anchors": {
+        "1": "顺序随意、整页文字",
+        "3": "关键页齐全但无钩子",
+        "5": "18–22 页、一页一结论句、每页 ≥ 1 个数字、图表 ≥ 8、与书面材料数字一致"
+      }
+    },
+    {
+      "id": "script",
+      "name": "讲稿与时间",
+      "weight": 25,
+      "anchors": {
+        "1": "超时或流水账",
+        "3": "字数合适但段落平均",
+        "5": "1650–1950 字、前 150 字钩子、每段首句结论、结尾回扣"
+      }
+    },
+    {
+      "id": "qa",
+      "name": "答辩准备",
+      "weight": 25,
+      "anchors": {
+        "1": "无题库",
+        "3": "< 20 题",
+        "5": "≥ 40 题六维度、三段式、主答人"
+      }
+    }
+  ],
+  "hardGates": [
+    "anonymity_hits",
+    "page_limit",
+    "budget_in_range",
+    "cross_doc_consistency",
+    "forbidden_terms_adlaw"
+  ],
+  "version": "2026.1",
+  "officialPitchTotal": 40,
+  "officialWrittenTotal": 60,
+  "officialEstimateRule": "written = Σ(score ÷ 5 × officialWeight)；pitch = Σ pitchDimensions(score ÷ 5 × weight) × officialPitchTotal ÷ 100；total = written + pitch"
+}
