@@ -49,8 +49,10 @@ description: 用 assumptions.json + bizkit.finmodel 生成带公式的财务模�
 ## 4. 命令与验收
 ```bash
 export PYTHONPATH=toolkit PYTHONUTF8=1
+"${BIZGOLD_PYTHON:-python}" -m bizkit.finmodel --example budget    # 或 startup：打印完整可运行模板，字段即全部可用字段
 "${BIZGOLD_PYTHON:-python}" -m bizkit.finmodel 03_财务/assumptions.json --out 03_财务
 ```
+字段拿不准就看 `--example` 的模板照抄改数（未列出的键会被忽略），**不要去读 finmodel.py 源码**——它有 2700 行，读完只会浪费上下文。
 读 `03_财务/财务摘要.md`：
 - 检查页全部 0（资产 = 负债 + 权益；现金流期末 = 资产负债表货币资金；净利 → 留存收益）。
 - 盈亏平衡 12–36 个月；现金最低点 + 融资额 ≥ 0；出让比例 = 融资额 ÷ 投后（±1 pp）。

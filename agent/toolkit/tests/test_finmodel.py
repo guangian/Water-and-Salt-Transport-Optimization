@@ -294,6 +294,20 @@ def test_cli_last_line_json(ws: Path, tmp_path: Path) -> None:
     assert (out / "财务模型.xlsx").exists() and (out / "numbers.json").exists()
 
 
+@pytest.mark.parametrize("mode", ["startup", "budget"])
+def test_cli_example_templates_run(mode: str, tmp_path: Path) -> None:
+    """--example 打印的模板必须是完整可运行的 assumptions（建模师照抄改数即可，不必读源码）"""
+    proc = subprocess.run([PY, "-m", "bizkit.finmodel", "--example", mode], cwd=TOOLKIT, capture_output=True, text=True,
+                          encoding="utf-8", env={"PYTHONUTF8": "1", "PATH": "/usr/bin:/bin"})
+    assert proc.returncode == 0, proc.stderr
+    tpl = json.loads(proc.stdout)
+    assert tpl["mode"] == mode
+    p = tmp_path / "assumptions.json"
+    write_json(p, tpl)
+    r = fm.run(p, str(tmp_path / "out"))
+    assert r["ok"] and r["mode"] == mode and not r["warnings"], r
+
+
 # --------------------------------------------------------------------------- budget
 def test_budget_totals_recompute(ws: Path, budget: Dict[str, Any]) -> None:
     a = read_json(ws / "03_财务" / "assumptions_budget.json")

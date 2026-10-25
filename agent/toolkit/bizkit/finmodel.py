@@ -2681,12 +2681,30 @@ def run(assumptions_path: Path, out: Optional[str] = None) -> Dict[str, Any]:
     raise FinModelError(f"不支持的 mode「{mode}」，可选 startup | budget")
 
 
+TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
+TEMPLATE_FILES = {"startup": "assumptions_startup.json", "budget": "assumptions_budget.json"}
+
+
+def example_assumptions(mode: str) -> Dict[str, Any]:
+    """返回随工具包分发的完整可运行示例 assumptions（startup / budget），供建模师照抄改数，不必读源码。"""
+    name = TEMPLATE_FILES.get(mode)
+    if not name:
+        raise FinModelError(f"未知模式 {mode!r}，可选：{', '.join(TEMPLATE_FILES)}")
+    return json.loads((TEMPLATE_DIR / name).read_text(encoding="utf-8"))
+
+
 def main(argv: Optional[Sequence[str]] = None) -> int:
     force_utf8_stdout()
     ap = argparse.ArgumentParser(description="assumptions.json → 财务模型.xlsx + numbers.json + 财务摘要.md + 财务图表.charts.json")
-    ap.add_argument("assumptions", help="03_财务/assumptions.json 路径")
+    ap.add_argument("assumptions", nargs="?", default="", help="03_财务/assumptions.json 路径")
     ap.add_argument("--out", default="", help="输出目录（默认与 assumptions.json 同目录；相对路径相对工作区根）")
+    ap.add_argument("--example", choices=sorted(TEMPLATE_FILES), help="打印该模式完整的示例 assumptions.json 后退出（字段即全部可用字段）")
     args = ap.parse_args(argv)
+    if args.example:
+        print(json.dumps(example_assumptions(args.example), ensure_ascii=False, indent=2))
+        return 0
+    if not args.assumptions:
+        ap.error("需要 assumptions.json 路径，或用 --example startup|budget 查看模板")
     try:
         result = run(Path(args.assumptions), args.out or None)
     except FinModelError as e:

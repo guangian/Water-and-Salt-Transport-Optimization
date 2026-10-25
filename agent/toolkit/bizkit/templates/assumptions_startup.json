@@ -1,0 +1,65 @@
+{
+  "mode": "startup",
+  "company": "弘宝汝瓷文创",
+  "currency": "元",
+  "unit": 10000,
+  "startYear": 2026,
+  "years": 5,
+  "monthlyFirstYear": true,
+  "scenarios": { "base": 1.0, "optimistic": 1.2, "pessimistic": 0.8 },
+  "revenueStreams": [
+    {
+      "name": "文创礼品线上零售",
+      "driver": "volume_price",
+      "unitName": "件",
+      "volume": { "y1Monthly": [260, 290, 330, 380, 440, 500, 560, 620, 700, 820, 980, 1120], "yoyGrowth": [0, 0.85, 0.55, 0.38, 0.26] },
+      "price": { "base": 298, "yoyChange": [0, 0.03, 0.03, 0.03, 0.03] },
+      "cogsRatio": 0.42,
+      "source": "单价=天猫同类 TOP10 均价 [12]；首年销量=渠道访谈 + SOM 的 8%（01_调研/数据/市场规模.csv）"
+    },
+    {
+      "name": "企业定制",
+      "driver": "clients_arpu",
+      "unitName": "家",
+      "clients": { "y1Monthly": [0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2], "yoyGrowth": [0, 1.0, 0.6, 0.4, 0.3] },
+      "arpu": { "base": 60000, "yoyChange": [0, 0.05, 0.05, 0.05, 0.05] },
+      "cogsRatio": 0.55,
+      "source": "单均合同额=汝州 3 家同业访谈（01_调研/03_访谈纪要.md）；首年 16 家=意向客户名单"
+    }
+  ],
+  "costs": {
+    "fixed": [
+      { "name": "场地租金", "monthly": 12000, "yoyChange": 0.05, "source": "汝州产业园报价" },
+      { "name": "SaaS 与软件", "monthly": 3000, "source": "有赞 / 飞书刊例" }
+    ],
+    "variablePctOfRevenue": [
+      { "name": "平台佣金与支付", "pct": 0.06, "source": "天猫 / 抖音电商费率公示" },
+      { "name": "物流与包装", "pct": 0.04, "source": "顺丰协议价测算" }
+    ],
+    "marketing": { "pctOfRevenue": [0.16, 0.14, 0.11, 0.09, 0.08], "minAnnual": 300000, "source": "营销章预算表" },
+    "headcount": [
+      { "role": "品牌/运营", "y": [3, 4, 5, 6, 7], "monthlySalary": 8000, "socialRate": 0.28, "source": "汝州 2025 薪酬报告" },
+      { "role": "设计/产品", "y": [2, 2, 3, 3, 4], "monthlySalary": 10000, "socialRate": 0.28, "source": "同上" }
+    ],
+    "capex": [
+      { "name": "设备与装修", "year": 1, "month": 1, "amount": 400000, "depreciationYears": 5, "source": "供应商报价" }
+    ],
+    "otherOpexPctOfRevenue": 0.03
+  },
+  "workingCapital": { "receivableDays": 30, "inventoryDays": 60, "payableDays": 45 },
+  "tax": { "incomeTaxRate": 0.25, "vatIncluded": false },
+  "financing": [
+    {
+      "round": "种子轮", "year": 1, "month": 1, "amount": 2000000, "preMoney": 8000000,
+      "use": [
+        { "item": "产品研发", "pct": 0.35 },
+        { "item": "品牌营销", "pct": 0.40 },
+        { "item": "团队与运营", "pct": 0.25 }
+      ]
+    }
+  ],
+  "openingCash": 500000,
+  "valuation": { "methods": ["dcf", "ps_comparables", "vc_method"], "wacc": 0.18, "terminalGrowth": 0.03, "psMultiple": 3.0, "exitPE": 20, "exitYear": 5, "targetIrr": 0.40 },
+  "unitEconomics": { "cac": 120, "repeatRate": 0.35, "grossMarginRef": 0.58, "lifetimeOrders": 3.2, "lifetimeMonths": 24 },
+  "sensitivity": { "drivers": ["price", "volume", "cogsRatio", "cac", "fixedCost"], "range": [-0.3, -0.15, 0.15, 0.3] }
+}

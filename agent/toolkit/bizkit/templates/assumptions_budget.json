@@ -1,0 +1,45 @@
+{
+  "mode": "budget",
+  "currency": "元",
+  "unit": 10000,
+  "totalCap": 3000000,
+  "startYear": 2026,
+  "headcount": 6,
+  "phases": [
+    {
+      "name": "第一阶段：声量引爆（2026.4–6）",
+      "items": [
+        { "item": "抖音信息流投放", "category": "媒介投放", "unitPrice": 35, "quantity": 16000, "unit": "CPM", "source": "巨量引擎 2025 刊例 [18]" },
+        { "item": "小红书 KOC 种草", "category": "内容与达人", "unitPrice": 3000, "quantity": 100, "unit": "篇", "source": "蒲公英平台报价均值 [19]" },
+        { "item": "品牌 TVC 与主视觉制作", "category": "内容与达人", "unitPrice": 180000, "quantity": 1, "unit": "套", "source": "郑州 3 家制作公司比价" },
+        { "item": "汝州非遗日快闪活动", "category": "线下活动", "unitPrice": 120000, "quantity": 1, "unit": "场", "source": "活动公司报价单" }
+      ]
+    },
+    {
+      "name": "第二阶段：种草转化（2026.7–9）",
+      "items": [
+        { "item": "头部直播间专场", "category": "直播电商", "unitPrice": 80000, "quantity": 3, "unit": "场", "source": "MCN 坑位费 + 20% 佣金折算 [20]" },
+        { "item": "店播投流（千川）", "category": "媒介投放", "unitPrice": 30, "quantity": 12000, "unit": "CPM", "source": "巨量千川 2025 刊例 [18]" },
+        { "item": "腰部 KOL 合作", "category": "内容与达人", "unitPrice": 25000, "quantity": 6, "unit": "人", "source": "星图报价中位数 [19]" },
+        { "item": "礼盒包装与物料", "category": "物料制作", "unitPrice": 18, "quantity": 8000, "unit": "套", "source": "包装厂报价" }
+      ]
+    },
+    {
+      "name": "第三阶段：旺季收割（2026.10–12）",
+      "items": [
+        { "item": "双 11 / 双 12 大促投放", "category": "媒介投放", "unitPrice": 40, "quantity": 10000, "unit": "CPM", "source": "巨量引擎大促刊例 [18]" },
+        { "item": "企业礼品渠道推介会", "category": "线下活动", "unitPrice": 60000, "quantity": 2, "unit": "场", "source": "场地 + 物料报价" },
+        { "item": "搜索与站内推广", "category": "媒介投放", "unitPrice": 2.5, "quantity": 60000, "unit": "点击", "source": "天猫直通车均价 [21]" },
+        { "item": "舆情监测与效果评估", "category": "监测评估", "unitPrice": 15000, "quantity": 3, "unit": "月", "source": "巨量云图 / 蝉妈妈套餐价" }
+      ]
+    }
+  ],
+  "contingencyPct": 0.08,
+  "kpis": [
+    { "metric": "曝光量", "baseline": "—", "target": "5000 万", "tool": "巨量云图", "cycle": "周", "phase": "第一阶段" },
+    { "metric": "品牌搜索指数", "baseline": "100", "target": "+120%", "tool": "百度 / 抖音指数", "cycle": "周", "phase": "全程" },
+    { "metric": "直播 GMV", "baseline": "0", "target": "420 万元", "tool": "抖店罗盘", "cycle": "场", "phase": "第二、三阶段" },
+    { "metric": "企业定制意向客户", "baseline": "6 家", "target": "30 家", "tool": "CRM", "cycle": "月", "phase": "第三阶段" }
+  ],
+  "roi": { "incrementalRevenue": 6800000, "grossMargin": 0.55, "brandAssetNote": "品牌搜索指数目标 +120%，抖音品牌号粉丝 10 万" }
+}
