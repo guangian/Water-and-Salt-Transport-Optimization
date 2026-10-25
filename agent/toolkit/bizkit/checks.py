@@ -52,8 +52,9 @@ _UNIT = (r"亿人次|亿次|亿人|万人次|万人|万次|万份|万件|万单|
          r"|章|节|期|轮|批|项|步|部分|层|级|段")
 _NUM_RE = re.compile(r"(?<![A-Za-z0-9_.])([-−–]?\d[\d,，]*(?:\.\d+)?)\s*(" + _UNIT + r")?")
 # 不是“数量”的数字：序数（第 2 章）、标识符 / 路径 / 时刻（03_财务、16:9、2026-03）
-_NOT_QUANTITY_BEFORE = re.compile(r"(第\s*|\d\s*[:：]|[_/\\]|\d[\-–—~～])$")
-_NOT_QUANTITY_AFTER = re.compile(r"^\s*[_/\\:：\-–][0-9A-Za-z\u4e00-\u9fff]")
+# 不是“量”的数字：序号 / 路径 / 区间后段 / 时刻 / 箭头（0→1）/ 节日（双11）/ 字母编号（P1、Q3、C1）/ 日期（11 月、25 日）
+_NOT_QUANTITY_BEFORE = re.compile(r"(第\s*|\d\s*[:：]|[_/\\]|\d[\-–—~～]|[→←➔]\s*|->\s*|双|[A-Za-z])$")
+_NOT_QUANTITY_AFTER = re.compile(r"^\s*([_/\\:：\-–][0-9A-Za-z\u4e00-\u9fff]|[→➔]|->|月(?!度)|日|号)")
 _DIGIT_RE = re.compile(r"\d")
 _MARKER_RE = re.compile(r"示例数据")
 _SOURCE_HINT_RE = re.compile(r"来源|据《|\[\d+\]|引自")
@@ -2340,7 +2341,7 @@ def _candidates(text: str, unit: str) -> List[Tuple[List[float], str, int]]:
             continue
         v = abs(v)
         u = m.group(2) or ""
-        if u in ("章", "节", "期", "轮", "批", "项", "步", "部分", "层", "级", "段", "页", "条", "张", "场", "次", "年", "天", "小时", "位", "名") and u != unit:
+        if u in ("章", "节", "期", "轮", "批", "项", "步", "部分", "层", "级", "段", "页", "条", "张", "场", "次", "年", "月", "日", "号", "季度", "天", "小时", "位", "名") and u != unit:
             continue
         if cls == "money":
             if u in _MONEY_UNITS:
