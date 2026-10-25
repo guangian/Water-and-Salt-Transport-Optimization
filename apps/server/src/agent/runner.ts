@@ -16,7 +16,7 @@ import { EventNormalizer, MAIN_AGENT } from './events.js';
 import { createBizgoldMcpServer } from './mcp.js';
 import { buildPrompt, buildSystemAppend } from './prompt.js';
 import { shouldApplyFallback } from './progress.js';
-import { prepareWorkspace } from './workspace.js';
+import { prepareWorkspace, writePythonShims } from './workspace.js';
 
 const log = createLogger('runner');
 /** 主代理提前收尾时自动续跑的最大次数（每次续跑都是完整的新 query，带已完成阶段清单） */
@@ -219,6 +219,7 @@ export class AgentRunner {
     if (!useResume && opts.mode === 'modify') prompt = '请先阅读 任务书.md 与 CLAUDE.md 了解项目背景与工作区现状。\n' + prompt;
 
     const maxTurns = opts.maxTurns ?? (opts.smoke ? 15 : settings.run.maxTurns);
+    await writePythonShims(ws, pythonPath).catch((e) => log.warn('python shims failed', errorMessage(e)));
     const env = this.buildEnv(settings, apiKey, gw.baseUrl, ws, pythonPath, gitBash);
     const options: Options = {
       cwd: ws,
@@ -294,6 +295,12 @@ export class AgentRunner {
       BIZGOLD_PYTHON: pythonPath,
       BIZGOLD_WORKSPACE: ws,
     };
+    // 工作区 .bin 里的 python / python3 垫片指向配置的解释器：主代理和子代理偶尔会直接敲 `python3 -c`，
+    // 在 Windows 上 python3 往往是应用商店别名或根本不存在，这里保证它们都落到装好依赖的那一个解释器。
+    const shimDir = path.join(ws, '.bin');
+    const sep = IS_WINDOWS ? ';' : ':';
+    env.PATH = `${shimDir}${sep}${process.env.PATH ?? ''}`;
+    if (IS_WINDOWS) env.Path = env.PATH;
     if (settings.api.disableThinking) env.CLAUDE_CODE_DISABLE_THINKING = '1';
     // 技术手册 §4.5：网关对 beta 字段（context_management / defer_loading 等）返回 400 时的首选开关。
     // 本机实测 llm.goaichat.top 不需要（smoke 不加该开关即通过），因此默认关闭、设置可开。

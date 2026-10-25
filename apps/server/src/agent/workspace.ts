@@ -39,6 +39,23 @@ export interface PrepareResult {
 }
 
 /**
+ * 在工作区 .bin 下写 python / python3 垫片，全部转发到配置的解释器（runner 把 .bin 放到 PATH 最前面）。
+ * Git Bash / Linux 走无扩展名的 sh 脚本，cmd / PowerShell 走 .cmd；两套都写，谁调用都能命中。
+ */
+export async function writePythonShims(ws: string, pythonPath: string): Promise<string> {
+  const dir = path.join(ws, '.bin');
+  await ensureDir(dir);
+  const sh = `#!/bin/sh\nexec "${pythonPath.replace(/\\/g, '/')}" "$@"\n`;
+  const cmd = `@echo off\r\n"${pythonPath}" %*\r\n`;
+  for (const name of ['python', 'python3']) {
+    await fsp.writeFile(path.join(dir, name), sh, { encoding: 'utf-8', mode: 0o755 });
+    await fsp.chmod(path.join(dir, name), 0o755).catch(() => undefined);
+    await fsp.writeFile(path.join(dir, `${name}.cmd`), cmd, 'utf-8');
+  }
+  return dir;
+}
+
+/**
  * 准备工作区：复制 agent/ 大脑（CLAUDE.md、.claude/、toolkit/、knowledge/、tracks/<track>/），
  * 渲染 任务书.md，替换 agents 模型占位符，创建阶段目录。源缺失时只记警告（规范文件由他人并行撰写）。
  */
