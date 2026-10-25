@@ -29,6 +29,8 @@ powershell -ExecutionPolicy Bypass -File scripts\setup.ps1     # pnpm install + 
 pnpm dev        # 开发模式：http://localhost:5173（后端 5178）
 # 或
 pnpm build; pnpm start   # 生产模式：http://localhost:5178
+# 或（Windows 常驻，推荐长时间运行）
+pnpm build; powershell -ExecutionPolicy Bypass -File scripts\service.ps1 -Install   # 注册为计划任务 BizGoldServer
 ```
 
 Linux / macOS：`bash scripts/setup.sh`。
