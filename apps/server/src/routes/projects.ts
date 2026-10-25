@@ -33,7 +33,8 @@ const KIND_BY_EXT: Record<string, string> = {
 const PREREAD_KINDS = new Set(['pdf', 'docx', 'xlsx', 'csv', 'text', 'json']);
 
 export async function projectRoutes(app: FastifyInstance, ctx: AppContext): Promise<void> {
-  app.get('/projects', async () => ctx.store.list());
+  // 前端首页卡片按完整 Project 契约渲染（review.latestScore / params.targetScore / stages[*].status），这里返回完整对象；摘要版见 ?summary=1
+  app.get<{ Querystring: { summary?: string } }>('/projects', async (req) => (req.query.summary ? ctx.store.list() : ctx.store.listFull()));
 
   app.post<{ Body: ProjectCreateInput }>('/projects', async (req, reply) => {
     const settings = await ctx.settings.get();

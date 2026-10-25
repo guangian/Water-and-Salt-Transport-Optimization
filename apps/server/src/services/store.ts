@@ -142,7 +142,21 @@ export class ProjectStore {
     return path.join(this.dirOf(id), 'events.jsonl');
   }
 
-  async list(): Promise<ProjectSummary[]> {
+  /** 完整项目列表（工作台首页用：卡片需要 params / review / artifacts，不只是摘要） */
+  async listFull(): Promise<Project[]> {
+    await ensureDir(this.workspaceDir);
+    const names = await fsp.readdir(this.workspaceDir).catch(() => [] as string[]);
+    const out: Project[] = [];
+    for (const n of names) {
+      if (!PROJECT_ID_RE.test(n)) continue;
+      const p = await readJsonOrNull<Project>(path.join(this.workspaceDir, n, 'project.json'));
+      if (p) out.push(p);
+    }
+    out.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+    return out;
+  }
+
+  async list(): Promise<ProjectSummary[] > {
     await ensureDir(this.workspaceDir);
     const names = await fsp.readdir(this.workspaceDir).catch(() => [] as string[]);
     const out: ProjectSummary[] = [];
