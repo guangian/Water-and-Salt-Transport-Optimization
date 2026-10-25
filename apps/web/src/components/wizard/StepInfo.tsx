@@ -119,6 +119,9 @@ export function StepInfo({
 }) {
   const setSubject = (patch: Partial<Draft['subject']>) => onChange({ subject: { ...draft.subject, ...patch } });
   const cases = track?.assignedCases ?? [];
+  const [caseFilter, setCaseFilter] = useState('');
+  const caseKeyword = caseFilter.trim().toLowerCase();
+  const visibleCases = caseKeyword ? cases.filter((c) => `${c.company} ${c.title}`.toLowerCase().includes(caseKeyword)) : cases;
   const briefLen = draft.subject.brief.length;
 
   return (
@@ -157,6 +160,15 @@ export function StepInfo({
           </div>
           {draft.subject.isAssignedCase && cases.length ? (
             <Field label="选择命题" required error={errors['subject.caseTitle'] ?? null} className="mt-4" hint="来自组委会公布的命题企业与方向；选择后自动填充企业名。">
+              {cases.length > 8 ? (
+                <Input
+                  value={caseFilter}
+                  onChange={(e) => setCaseFilter(e.target.value)}
+                  placeholder={`输入企业名或关键词筛选（共 ${cases.length} 个命题）`}
+                  aria-label="筛选命题"
+                  className="mb-2"
+                />
+              ) : null}
               <Select
                 value={draft.subject.caseTitle}
                 invalid={Boolean(errors['subject.caseTitle'])}
@@ -165,8 +177,11 @@ export function StepInfo({
                   setSubject({ caseTitle: e.target.value, company: c?.company ?? draft.subject.company, name: draft.subject.name || (c?.title.replace(/品牌.*$|策划.*$|方案.*$/, '') ?? '') });
                 }}
               >
-                <option value="">请选择命题…</option>
-                {cases.map((c) => (
+                <option value="">{visibleCases.length ? `请选择命题…（${visibleCases.length} 个）` : '没有匹配的命题，换个关键词'}</option>
+                {draft.subject.caseTitle && !visibleCases.some((c) => c.title === draft.subject.caseTitle) ? (
+                  <option value={draft.subject.caseTitle}>{draft.subject.caseTitle}（已选）</option>
+                ) : null}
+                {visibleCases.map((c) => (
                   <option key={c.title} value={c.title}>
                     {c.company} — {c.title}
                   </option>
