@@ -1,0 +1,208 @@
+{
+  "generatedAt": "2026-10-24",
+  "unit": "万元",
+  "mode": "startup",
+  "company": "弘宝汝瓷文创",
+  "entries": [
+    {
+      "key": "revenue_y1",
+      "label": "第 1 年营业收入",
+      "value": 304.6,
+      "unit": "万元",
+      "source": "03_财务/财务模型.xlsx!利润表!O2",
+      "usedIn": []
+    },
+    {
+      "key": "revenue_y2",
+      "label": "第 2 年营业收入",
+      "value": 599.1,
+      "unit": "万元",
+      "source": "03_财务/财务模型.xlsx!利润表!P2",
+      "usedIn": []
+    },
+    {
+      "key": "revenue_y3",
+      "label": "第 3 年营业收入",
+      "value": 973.3,
+      "unit": "万元",
+      "source": "03_财务/财务模型.xlsx!利润表!Q2",
+      "usedIn": []
+    },
+    {
+      "key": "revenue_y4",
+      "label": "第 4 年营业收入",
+      "value": 1399.9,
+      "unit": "万元",
+      "source": "03_财务/财务模型.xlsx!利润表!R2",
+      "usedIn": []
+    },
+    {
+      "key": "revenue_y5",
+      "label": "第 5 年营业收入",
+      "value": 1850.2,
+      "unit": "万元",
+      "source": "03_财务/财务模型.xlsx!利润表!S2",
+      "usedIn": []
+    },
+    {
+      "key": "net_profit_y1",
+      "label": "第 1 年净利润",
+      "value": -17.7,
+      "unit": "万元",
+      "source": "03_财务/财务模型.xlsx!利润表!O19",
+      "usedIn": []
+    },
+    {
+      "key": "net_profit_y2",
+      "label": "第 2 年净利润",
+      "value": 44.1,
+      "unit": "万元",
+      "source": "03_财务/财务模型.xlsx!利润表!P19",
+      "usedIn": []
+    },
+    {
+      "key": "net_profit_y3",
+      "label": "第 3 年净利润",
+      "value": 113.9,
+      "unit": "万元",
+      "source": "03_财务/财务模型.xlsx!利润表!Q19",
+      "usedIn": []
+    },
+    {
+      "key": "net_profit_y4",
+      "label": "第 4 年净利润",
+      "value": 218.4,
+      "unit": "万元",
+      "source": "03_财务/财务模型.xlsx!利润表!R19",
+      "usedIn": []
+    },
+    {
+      "key": "net_profit_y5",
+      "label": "第 5 年净利润",
+      "value": 314.8,
+      "unit": "万元",
+      "source": "03_财务/财务模型.xlsx!利润表!S19",
+      "usedIn": []
+    },
+    {
+      "key": "gross_margin_y1",
+      "label": "第 1 年毛利率",
+      "value": 0.539,
+      "unit": "%",
+      "source": "03_财务/财务模型.xlsx!利润表!O5",
+      "usedIn": []
+    },
+    {
+      "key": "gross_margin_y2",
+      "label": "第 2 年毛利率",
+      "value": 0.5363,
+      "unit": "%",
+      "source": "03_财务/财务模型.xlsx!利润表!P5",
+      "usedIn": []
+    },
+    {
+      "key": "gross_margin_y3",
+      "label": "第 3 年毛利率",
+      "value": 0.5348,
+      "unit": "%",
+      "source": "03_财务/财务模型.xlsx!利润表!Q5",
+      "usedIn": []
+    },
+    {
+      "key": "gross_margin_y4",
+      "label": "第 4 年毛利率",
+      "value": 0.5338,
+      "unit": "%",
+      "source": "03_财务/财务模型.xlsx!利润表!R5",
+      "usedIn": []
+    },
+    {
+      "key": "gross_margin_y5",
+      "label": "第 5 年毛利率",
+      "value": 0.5323,
+      "unit": "%",
+      "source": "03_财务/财务模型.xlsx!利润表!S5",
+      "usedIn": []
+    },
+    {
+      "key": "breakeven_month",
+      "label": "盈亏平衡月份（累计经营利润转正）",
+      "value": 17,
+      "unit": "月",
+      "source": "03_财务/财务模型.xlsx!盈亏平衡!B7",
+      "usedIn": []
+    },
+    {
+      "key": "min_cash",
+      "label": "现金最低点（融资前，含期初现金）",
+      "value": -58.1,
+      "unit": "万元",
+      "source": "03_财务/财务模型.xlsx!现金流量表!B22",
+      "usedIn": []
+    },
+    {
+      "key": "financing_amount",
+      "label": "融资额",
+      "value": 200.0,
+      "unit": "万元",
+      "source": "03_财务/财务模型.xlsx!融资!C4",
+      "usedIn": []
+    },
+    {
+      "key": "pre_money",
+      "label": "投前估值",
+      "value": 800.0,
+      "unit": "万元",
+      "source": "03_财务/财务模型.xlsx!融资!D4",
+      "usedIn": []
+    },
+    {
+      "key": "post_money",
+      "label": "投后估值",
+      "value": 1000.0,
+      "unit": "万元",
+      "source": "03_财务/财务模型.xlsx!融资!E4",
+      "usedIn": []
+    },
+    {
+      "key": "equity_offered",
+      "label": "出让比例",
+      "value": 0.2,
+      "unit": "%",
+      "source": "03_财务/财务模型.xlsx!融资!F4",
+      "usedIn": []
+    },
+    {
+      "key": "cac",
+      "label": "获客成本 CAC",
+      "value": 120.0,
+      "unit": "元",
+      "source": "03_财务/财务模型.xlsx!单位经济!B4",
+      "usedIn": []
+    },
+    {
+      "key": "ltv",
+      "label": "客户生命周期价值 LTV",
+      "value": 553.1,
+      "unit": "元",
+      "source": "03_财务/财务模型.xlsx!单位经济!B10",
+      "usedIn": []
+    },
+    {
+      "key": "ltv_cac",
+      "label": "LTV : CAC",
+      "value": 4.61,
+      "unit": "倍",
+      "source": "03_财务/财务模型.xlsx!单位经济!B11",
+      "usedIn": []
+    },
+    {
+      "key": "payback_months",
+      "label": "CAC 回收期",
+      "value": 5.2,
+      "unit": "月",
+      "source": "03_财务/财务模型.xlsx!单位经济!B12",
+      "usedIn": []
+    }
+  ]
+}

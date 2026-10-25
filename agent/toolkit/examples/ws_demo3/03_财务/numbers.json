@@ -1,0 +1,12 @@
+{
+  "generatedAt": "2026-04-02T10:00:00+08:00",
+  "unit": "万元",
+  "mode": "budget",
+  "entries": [
+    { "key": "budget_total", "label": "推广预算总额（含机动金）", "value": 300, "unit": "万元", "source": "03_财务/财务模型.xlsx!预算总表!F14", "usedIn": ["05_正文/03_品牌定位与传播策略.md", "06_路演/讲稿.md"] },
+    { "key": "sample_size", "label": "问卷有效样本量", "value": 412, "unit": "份", "source": "01_调研/调研工具包/示例结果.md", "synthetic": true, "usedIn": ["05_正文/02_品牌现状分析.md"] },
+    { "key": "kpi_exposure", "label": "全案曝光量", "value": 5000, "unit": "万次", "source": "03_财务/财务模型.xlsx!KPI!C3" },
+    { "key": "roi", "label": "投入产出比 ROI", "value": 2.5, "unit": "倍", "source": "03_财务/财务模型.xlsx!ROI!B8" },
+    { "key": "research_interviews", "label": "深度访谈人数", "value": 18, "unit": "人", "source": "01_调研/调研工具包/示例结果.md", "synthetic": true }
+  ]
+}

@@ -38,7 +38,7 @@ DEFAULT_NAMING: Dict[str, Any] = {
     "videoPeople": "3–5 人",
 }
 # 这些占位符没有可靠来源，只能先占位并在 README 里提醒用户替换
-MANUAL_PLACEHOLDERS = {"学校": "学校名称", "抽签编号": "抽签编号", "抽签编号或学校": "抽签编号或学校", "院校": "学校名称", "编号": "编号"}
+MANUAL_PLACEHOLDERS = {"学校": "学校名称", "学校名称": "学校名称", "院校名称": "学校名称", "抽签编号": "抽签编号", "抽签编号或学校": "抽签编号或学校", "院校": "学校名称", "编号": "编号", "队长姓名": "队长姓名"}
 SKIP_DIRS = {"toolkit", ".claude", ".claude-home", "node_modules", ".cache", "08_提交包", "inputs"}
 
 
@@ -68,6 +68,9 @@ def build_base_name(rule: str, project: Dict[str, Any], track: str) -> Tuple[str
         "赛道": TRACK_NAMES.get(track, track), "企业": subject.get("company") or subject.get("name") or "", "指导企业": subject.get("company") or "",
         "品牌": subject.get("name") or "", "材料": DOC_NAMES.get(track, "参赛作品"),
     }
+    # tracks/<id>/naming.json 里用的是全称占位（{团队名称} / {作品名称} / {参赛组别}），与内置简称等价
+    values.update({"团队名称": values["团队名"], "作品名称": values["作品名"], "参赛组别": values["组别"], "项目名称": values["作品名"],
+                   "商业计划书名称": values["作品名"], "指导企业名称": values["指导企业"], "作品形式": DOC_NAMES.get(track, "参赛作品")})
     placeholders: List[str] = []
 
     def _sub(m: "re.Match[str]") -> str:

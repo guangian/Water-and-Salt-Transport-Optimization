@@ -1,0 +1,8 @@
+[
+  { "id": 1, "type": "gov", "author": "武汉市商务局", "title": "武汉市促进现制茶饮等新消费业态发展的若干措施", "publisher": "武汉市人民政府", "year": 2025, "date": "2025-03-12", "url": "https://www.wuhan.gov.cn/", "accessed": "2026-03-20" },
+  { "id": 2, "type": "report", "author": "中国连锁经营协会", "title": "2025 新茶饮研究报告", "publisher": "中国连锁经营协会", "year": 2025, "date": "2025-09-01", "url": "https://www.ccfa.org.cn/", "accessed": "2026-03-20" },
+  { "id": 3, "type": "web", "author": "美团研究院", "title": "2025 年城市茶饮消费洞察", "publisher": "美团研究院", "year": 2025, "date": "2025-11-05", "url": "https://mri.meituan.com/", "accessed": "2026-03-21" },
+  { "id": 4, "type": "paper", "author": "李雯, 周涛", "title": "区域茶饮品牌年轻化传播路径研究", "journal": "商业经济研究", "year": 2024, "issue": 6, "pages": "88-91" },
+  { "id": 5, "type": "annual-report", "author": "茶百道", "title": "2024 年度报告", "publisher": "四川百茶百道实业股份有限公司", "year": 2024, "date": "2025-03-28", "url": "https://www.hkexnews.hk/", "accessed": "2026-03-22" },
+  { "id": 6, "type": "news", "author": "王一", "title": "武汉现制茶饮门店破万家，本土品牌加速焕新", "newspaper": "长江日报", "date": "2023-12-08", "edition": "6" }
+]

@@ -381,6 +381,48 @@ def normalize_config(cfg: Dict[str, Any], override: Optional[Dict[str, Any]] = N
     cfg["numberKeys"] = _as_list(cfg.get("numberKeys"))
     if not isinstance(cfg.get("numericDensityChapters"), dict):
         cfg["numericDensityChapters"] = {}
+    # 5. 检查器用到的其余字段：示例数据标记覆盖率阈值、封面必填字段（默认取 naming.json，调用方可再覆盖）、按变体的开关表
+    try:
+        cfg["syntheticMarkerCoverage"] = float(cfg.get("syntheticMarkerCoverage", 1.0))
+    except (TypeError, ValueError):
+        cfg["syntheticMarkerCoverage"] = 1.0
+    cfg["coverFields"] = _as_list(cfg.get("coverFields"))
+    for k in ("requiredEvidenceByVariant", "coverFieldsByVariant"):
+        if not isinstance(cfg.get(k), dict):
+            cfg[k] = {}
+    return cfg
+
+
+def apply_variant(cfg: Dict[str, Any], variant: Optional[str]) -> Dict[str, Any]:
+    """按变体（案例赛道 accounting | retail）把 `requiredEvidenceByVariant` / `coverFieldsByVariant` 合并进生效配置。
+
+    变体开关覆盖同名的 `requiredEvidence` 项；`word_min` / `deck_min_pages` 两个特殊键同时写回 `wordMin` / `pitch.deckPages[0]`。
+    未知或空变体原样返回。
+    """
+    v = str(variant or "").strip()
+    cfg["variant"] = v or None
+    if not v:
+        return cfg
+    by_ev = cfg.get("requiredEvidenceByVariant") or {}
+    if isinstance(by_ev.get(v), dict):
+        ev = dict(cfg.get("requiredEvidence") or {})
+        ev.update({k: x for k, x in by_ev[v].items() if x is not None})
+        cfg["requiredEvidence"] = ev
+        if isinstance(ev.get("word_min"), (int, float)):
+            cfg["wordMin"] = max(int(cfg.get("wordMin") or 0), int(ev["word_min"]))
+        if isinstance(ev.get("deck_min_pages"), (int, float)):
+            pitch = dict(cfg.get("pitch") or {})
+            pages = list(pitch.get("deckPages") or cfg.get("deckPages") or [16, 20])
+            pages[0] = max(int(pages[0]), int(ev["deck_min_pages"]))
+            pages[1] = max(int(pages[1]), pages[0])
+            pitch["deckPages"] = pages
+            cfg["pitch"] = pitch
+            cfg["deckPages"] = pages
+        for check_id, flag in EVIDENCE_FLAGS.items():
+            cfg[flag] = bool(ev.get(check_id))
+    by_cf = cfg.get("coverFieldsByVariant") or {}
+    if isinstance(by_cf.get(v), list):
+        cfg["coverFields"] = list(by_cf[v])
     return cfg
 
 

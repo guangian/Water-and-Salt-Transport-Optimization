@@ -1,0 +1,33 @@
+{
+  "id": "p_demo_yunxiu",
+  "name": "一杯云岫，半城山色——云岫茶坊品牌策划书",
+  "teamName": "山色工作室",
+  "track": "brand",
+  "group": "本科组",
+  "subject": {
+    "type": "brand",
+    "name": "云岫茶坊",
+    "company": "汉口云岫茶业有限公司",
+    "isAssignedCase": true,
+    "caseTitle": "云岫茶坊品牌年轻化与门店焕新命题",
+    "brief": "命题要求：以 300 万元预算，在 12 个月内把区域现制茶饮品牌云岫茶坊的 25—35 岁消费者占比从 31% 提升到 45%，并完成 20 家门店形象焕新。",
+    "region": "湖北武汉",
+    "industry": "现制茶饮"
+  },
+  "team": [
+    { "role": "队长/总策划", "major": "市场营销", "strength": "品牌传播" },
+    { "role": "创意设计", "major": "视觉传达", "strength": "VI 与包装" },
+    { "role": "预算负责人", "major": "会计学", "strength": "预算与效果评估" }
+  ],
+  "params": {
+    "researchMode": "synthetic",
+    "pageTarget": 60,
+    "pitchMinutes": 10,
+    "reviewRounds": 3,
+    "targetScore": 85,
+    "language": "zh-CN"
+  },
+  "inputs": [],
+  "status": "idle",
+  "artifacts": {}
+}

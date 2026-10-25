@@ -319,7 +319,8 @@ def test_package_zip(ws: Path, book_result: Dict[str, Any], tmp_path: Path) -> N
     res = package_mod.package(ws, "brand", out_dir=tmp_path / "pkg")
     assert res["ok"] and res["zip"] and Path(res["zip"]).exists()
     base = res["baseName"]
-    assert base.startswith("本科组-学校名称-青瓷工作室-") and "学校名称" in res["placeholders"]
+    # 品牌策划赛道命名规则（tracks/brand/naming.json）：{学校名称}-{团队名称}-{作品名称}，学校名由团队提交时填写
+    assert base.startswith("学校名称-青瓷工作室-") and "学校名称" in res["placeholders"]
     names = set(zipfile.ZipFile(res["zip"]).namelist())
     assert f"{base}.docx" in names and "README.md" in names and "数据真实性清单.md" in names
     assert "声明与授权/企业授权书.docx" in names

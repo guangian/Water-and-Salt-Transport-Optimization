@@ -1,0 +1,27 @@
+{
+  "track": "brand",
+  "docType": "品牌策划书",
+  "cover": {
+    "title": "一杯云岫，半城山色",
+    "subtitle": "云岫茶坊品牌策划书",
+    "teamName": "山色工作室",
+    "company": "指导企业：汉口云岫茶业有限公司",
+    "group": "本科组",
+    "date": "2026 年 4 月",
+    "extraLines": []
+  },
+  "abstract": "05_正文/00_概要.md",
+  "chapters": [
+    { "file": "05_正文/01_引言.md", "numbered": true },
+    { "file": "05_正文/02_品牌现状分析.md" },
+    { "file": "05_正文/03_品牌定位与传播策略.md" }
+  ],
+  "appendices": [
+    { "file": "05_正文/A1_调研问卷.md" }
+  ],
+  "references": "01_调研/参考文献.json",
+  "style": { "bodyFont": "宋体", "bodySize": 12, "headingFont": "黑体", "toc": true, "tocDepth": 2, "header": "云岫茶坊品牌策划书" },
+  "anonymize": { "forbidden": ["XX学院"], "whitelist": ["云岫"] },
+  "output": "产出/云岫茶坊品牌策划书.docx",
+  "pdf": false
+}
