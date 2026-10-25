@@ -18,6 +18,8 @@ import { shouldApplyFallback } from './progress.js';
 import { prepareWorkspace } from './workspace.js';
 
 const log = createLogger('runner');
+/** 主代理提前收尾时自动续跑的最大次数（每次续跑都是完整的新 query，带已完成阶段清单） */
+const AUTO_CONTINUE_MAX = 6;
 
 export interface StartOptions {
   mode: 'run' | 'resume' | 'modify';
@@ -26,6 +28,8 @@ export interface StartOptions {
   /** 冒烟：短提示词 + 小 maxTurns，用于验证链路 */
   smoke?: boolean;
   maxTurns?: number;
+  /** 服务端自动续跑的次数（主代理提前收尾时由 runner 自动 resume，用户手动启动时为 0） */
+  autoContinue?: number;
 }
 
 interface ActiveRun {
@@ -41,6 +45,8 @@ interface ActiveRun {
   stderrTail: string[];
   timers: NodeJS.Timeout[];
   mode: StartOptions['mode'];
+  smoke: boolean;
+  autoContinue: number;
 }
 
 export interface RunnerDeps {
@@ -161,6 +167,8 @@ export class AgentRunner {
       stderrTail: [],
       timers: [],
       mode: opts.mode,
+      smoke: opts.smoke === true,
+      autoContinue: opts.autoContinue ?? 0,
     };
     run.normalizer = new EventNormalizer((ev) => this.enqueue(run, ev), {
       workspaceDir: ws,
@@ -258,6 +266,9 @@ export class AgentRunner {
   private buildEnv(settings: Settings, apiKey: string, baseUrl: string, ws: string, pythonPath: string, gitBash: string | null): Options['env'] {
     const m = settings.api.models;
     const env: Record<string, string | undefined> = {
+      // 子代理前台同步执行：SDK 0.3.x 默认把 Agent 调用后台化（async_launched），而单次 query 模式下主代理一旦“等待通知”结束回复，整个进程就结束、子代理被杀；
+      // 关掉后台任务后 Agent 调用阻塞到子代理完成并直接返回结果，同一条回复里的多个 Agent 调用仍然并行。
+      CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: '1',
       ...process.env,
       ANTHROPIC_BASE_URL: baseUrl,
       ANTHROPIC_AUTH_TOKEN: apiKey,
@@ -335,24 +346,38 @@ export class AgentRunner {
       if (threw) log.warn(`query ended with error after result: ${errorMessage(threw)}`);
     }
 
+    let shouldAutoContinue = false;
     try {
       await this.deps.store.mutate(projectId, async (p) => {
         const allDone = STAGE_IDS.every((s) => p.stages[s]?.status === 'done' || p.stages[s]?.status === 'skipped');
+        const prematurely = finalStatus === 'completed' && !allDone;
         // 成功结束但阶段未全部完成（模型提前收尾/冒烟/对半成品做修改）→ paused，便于续跑
-        p.status = finalStatus === 'completed' && !allDone ? 'paused' : finalStatus;
+        p.status = prematurely ? 'paused' : finalStatus;
         p.usage.durationMs += Date.now() - run.startedAt;
-        for (const s of STAGE_IDS) if (p.stages[s]?.status === 'running') p.stages[s]!.status = finalStatus === 'completed' ? 'done' : 'failed';
+        // 提前收尾时进行中的阶段并没有做完，回退为 pending 让续跑从它开始；真正失败才标 failed
+        for (const s of STAGE_IDS) if (p.stages[s]?.status === 'running') p.stages[s]!.status = finalStatus === 'completed' ? 'pending' : 'failed';
         p.artifacts = { ...p.artifacts, ...(await scanArtifacts(run.ws)) };
         await syncReviewIntoProject(run.ws, p);
+        // 完整运行（非冒烟、非修改）提前收尾：主代理常在“等待子代理 / 下一步”时结束回复，服务端自动续跑（上限 AUTO_CONTINUE_MAX 次）
+        shouldAutoContinue = prematurely && !run.smoke && run.mode !== 'modify' && run.autoContinue < AUTO_CONTINUE_MAX && !!p.session.sessionId;
       });
       const p = await this.deps.store.get(projectId);
-      await this.enqueue(run, { type: 'status', agent: MAIN_AGENT, data: { status: p.status, message: `运行结束：${p.status}` } });
+      await this.enqueue(run, {
+        type: 'status',
+        agent: MAIN_AGENT,
+        data: { status: p.status, message: shouldAutoContinue ? `主代理提前收尾（阶段未全部完成），服务端自动续跑（第 ${run.autoContinue + 1}/${AUTO_CONTINUE_MAX} 次）` : `运行结束：${p.status}` },
+      });
     } catch (e) {
       log.error('finalize failed', errorMessage(e));
     } finally {
       await run.chain.catch(() => undefined);
       this.active.delete(projectId);
       log.info(`end project=${projectId} status=${finalStatus} elapsed=${Math.round((Date.now() - run.startedAt) / 1000)}s`);
+    }
+    if (shouldAutoContinue) {
+      setTimeout(() => {
+        this.start(projectId, { mode: 'resume', autoContinue: run.autoContinue + 1 }).catch((e) => log.warn(`auto-continue failed: ${errorMessage(e)}`));
+      }, 3000);
     }
   }
 

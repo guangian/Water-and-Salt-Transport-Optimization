@@ -87,6 +87,7 @@ export function buildPrompt(ctx: PromptContext): string {
       `已完成阶段：${done.length ? done.join('、') : '无'}。${failed.length ? `上次失败阶段：${failed.join('、')}。` : ''}`,
       `请从「${STAGE_NAMES[from]}」阶段继续，按 CLAUDE.md 执行流程完成剩余阶段，直至 08_提交包 生成。`,
       '每个阶段开始/结束仍需调用 mcp__bizgold__update_progress 上报进度。',
+      '注意：子代理（Agent 工具）是前台同步执行的——调用返回时结果就在工具结果里，不存在“等待通知”；不要为了等待而结束回复。若上次是在等待子代理时结束的，先 ls 检查该子代理的输出文件是否已生成：已生成就按文件回收，没生成就用原任务书重新派发一次。',
     ].join('\n');
   }
   // modify
