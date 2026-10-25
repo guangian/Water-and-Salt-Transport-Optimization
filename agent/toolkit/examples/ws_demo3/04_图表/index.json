@@ -1,0 +1,17 @@
+{
+  "fig_market_size": {
+    "file": "fig_market_size.png",
+    "title": "武汉现制茶饮市场规模（2021—2026E）",
+    "source": "资料来源：武汉市商务局《2025 年武汉市餐饮消费报告》；美团研究院测算",
+    "type": "bar_line",
+    "widthMm": 160.0,
+    "heightMm": 90.0
+  },
+  "fig_funnel": {
+    "file": "fig_funnel.png",
+    "title": "传播漏斗与各阶段 KPI",
+    "type": "funnel",
+    "widthMm": 160.0,
+    "heightMm": 90.0
+  }
+}

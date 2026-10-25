@@ -18,7 +18,6 @@ docs/research/raw/
 agent/toolkit/examples/**/产出/
 agent/toolkit/examples/**/08_提交包/
 agent/toolkit/examples/**/04_图表/*.png
-agent/toolkit/examples/**/04_图表/index.json
 agent/toolkit/examples/**/*.xlsx
 agent/toolkit/examples/**/*.pptx
 agent/toolkit/examples/**/*.docx

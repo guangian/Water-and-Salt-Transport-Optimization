@@ -14,10 +14,12 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
+import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import pytest
 
@@ -31,8 +33,20 @@ EXAMPLES = TOOLKIT / "examples"
 PASS, WARN, FAIL, SKIP = checks.PASS, checks.WARN, checks.FAIL, checks.SKIP
 
 
+def _regen(dst: Path, args: List[str]) -> None:
+    """仓库只保存示例工作区的源文件（charts.json / assumptions.json / slides.json），派生产物按需重新生成。"""
+    env = dict(os.environ, PYTHONPATH=str(EXAMPLES.parent), PYTHONUTF8="1")
+    subprocess.run([sys.executable, "-m", *args], cwd=dst, env=env, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
 def _copy_ws(name: str, dst: Path) -> Path:
     shutil.copytree(EXAMPLES / name, dst, dirs_exist_ok=True, ignore=shutil.ignore_patterns("__pycache__"))
+    if (dst / "04_图表" / "charts.json").exists() and not (dst / "04_图表" / "index.json").exists():
+        _regen(dst, ["bizkit.charts", "04_图表/charts.json"])
+    if (dst / "03_财务" / "assumptions.json").exists() and not (dst / "03_财务" / "财务模型.xlsx").exists():
+        _regen(dst, ["bizkit.finmodel", "03_财务/assumptions.json", "--out", "03_财务"])
+    if (dst / "06_路演" / "slides.json").exists() and not (dst / "产出" / "路演.pptx.preview.json").exists() and name != "ws_demo3":
+        _regen(dst, ["bizkit.pptx_render", "06_路演/slides.json"])
     return dst
 
 
@@ -234,7 +248,10 @@ def test_examples_do_not_crash(tmp_path: Path, name: str, track: str) -> None:
     assert set(c) >= {"struct_coverage", "page_count", "word_count", "anonymity_hits", "numeric_density", "source_count", "forbidden_terms",
                       "forbidden_terms_adlaw", "weak_terms", "synthetic_marker_coverage", "cross_doc_consistency"}
     if name == "ws_demo":
-        assert c["page_count"]["pages"] == 25 and ".pdf" in c["page_count"]["detail"]  # 产出/*.pdf 真页数（pypdf）
+        if ".pdf" in c["page_count"]["detail"]:
+            assert c["page_count"]["pages"] == 25  # 产出/*.pdf 真页数（pypdf）；干净克隆没有 PDF 时走估算
+        else:
+            assert c["page_count"]["pages"] > 0
         assert c["has_competitor_matrix"]["status"] == PASS
         assert c["cross_doc_consistency"]["status"] == PASS and c["cross_doc_consistency"]["checked"] == 2
     else:
