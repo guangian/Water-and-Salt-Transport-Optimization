@@ -732,6 +732,21 @@ def check_word_count(ws: Workspace) -> Dict[str, Any]:
     return _mk("word_count", words, thr, status, f"{words} 字，下限 {wmin}")
 
 
+# “不得出现校徽”“背后白墙，无校徽”“匿名自查：校名 / 姓名”——这类是防泄露的提示语，不是泄露本身
+_NEGATION_BEFORE_RE = re.compile(r"(不得|不能|不要|不可|不应|禁止|严禁|杜绝|避免|无|没有|不出现|不含|不带|去掉|删除|删去|隐去|遮住|遮挡|打码|不允许|自查|检查|核对|排查|确认无|是否有|是否出现)[^。；;！？!?\n]{0,12}$")
+
+
+def _negated_mention(sentence: str, term: str) -> bool:
+    if not term:
+        return False
+    i = sentence.find(term)
+    while i >= 0:
+        if not _NEGATION_BEFORE_RE.search(sentence[max(0, i - 24):i]):
+            return False
+        i = sentence.find(term, i + len(term))
+    return True
+
+
 def check_anonymity(ws: Workspace) -> Dict[str, Any]:
     """匿名：赛道正则 + book/slides 的 anonymize.forbidden 字面词；白名单（赛道 + book + slides）先遮蔽。"""
     thr = {"pass": 0}
@@ -752,7 +767,7 @@ def check_anonymity(ws: Workspace) -> Dict[str, Any]:
             literals += [str(x) for x in (src.get("forbidden") or []) if x]
     patterns: List[Tuple[str, "re.Pattern[str]", bool]] = [("anonymity", rx, False)]
     patterns += [(t, re.compile(re.escape(t)), False) for t in dict.fromkeys(literals)]
-    hits = _scan(units, patterns, whitelist)
+    hits = [h for h in _scan(units, patterns, whitelist) if not _negated_mention(h.get("text") or "", h.get("term") or "")]
     detail = "无匿名违规" if not hits else f"{len(hits)} 处疑似院校 / 人员信息：" + "；".join(f"{h['file']}:{h['line']}「{h['term']}」" for h in hits[:5])
     return _mk("anonymity_hits", len(hits), thr, PASS if not hits else FAIL, detail, hits)
 
