@@ -28,7 +28,19 @@
           "cap": 3
         }
       ],
-      "officialWeight": 10
+      "officialWeight": 10,
+      "bandAnchors": {
+        "60": "企业与市场分析齐全但无一手数据，竞品案例 < 3，数字资产只有粉丝数",
+        "75": "一手调研五要素齐全 + 竞品案例 ≥ 3，但用户群体 / 文化偏好 / 消费习惯 / 政策法规四项中 ≥ 1 项无数据",
+        "85": "企业数字资产盘点（各平台粉丝 / 互动 / 转化）+ 四项均有数据 + 一手调研 + 竞品案例 ≥ 3（含数据）",
+        "92": "85 档全部 + 每个结论回指数据表 / 文献号 + 反直觉发现 ≥ 1 条"
+      },
+      "evidenceRequired": [
+        "数字资产盘点表（表号）",
+        "一手调研五要素原句及示例数据标记",
+        "竞品案例清单（≥ 3，含数据与来源）",
+        "政策法规条目与来源"
+      ]
     },
     {
       "id": "insight",
@@ -47,7 +59,19 @@
           "cap": 2
         }
       ],
-      "officialWeight": 10
+      "officialWeight": 10,
+      "bandAnchors": {
+        "60": "有画像但洞察等于常识，无定位陈述",
+        "75": "画像 + 洞察句 + 定位陈述，但缺人群 × 场景 × 平台矩阵或 Big Idea 不可复述",
+        "85": "画像 + 洞察句（人群 + 场景 + 冲突）+ 人群 × 场景 × 平台矩阵 + 定位陈述 + Big Idea 一句话可复述",
+        "92": "85 档全部 + 洞察有一手数据支撑 + Big Idea 与竞品主题差异对照 + 候选创意淘汰理由"
+      },
+      "evidenceRequired": [
+        "画像表（≥ 2 个）",
+        "洞察句原句",
+        "人群 × 场景 × 平台矩阵（表号）",
+        "定位陈述句与 Big Idea 原句"
+      ]
     },
     {
       "id": "channel",
@@ -71,7 +95,19 @@
           "cap": 3
         }
       ],
-      "officialWeight": 10
+      "officialWeight": 10,
+      "bandAnchors": {
+        "60": "有平台选择但无机制说明，KOL / KOC 无分层，短视频脚本不可拍",
+        "75": "平台角色与机制匹配表 + KOL / KOC 分层，但短视频脚本缺分镜 / 时长或实施步骤无排期",
+        "85": "平台角色与算法机制匹配表 + 内容形态 + KOL / KOC 分层（数量 / 报价 / 来源）+ 短视频脚本可拍（分镜 + 时长 + 字幕）+ 实施步骤",
+        "92": "85 档全部 + 每个平台有基线数据与目标 + 脚本与 Big Idea 一致 + 备选方案"
+      },
+      "evidenceRequired": [
+        "平台 × 角色 × 机制匹配表（表号）",
+        "KOL / KOC 分层清单",
+        "短视频脚本（分镜表位置）",
+        "实施步骤 / 排期表"
+      ]
     },
     {
       "id": "data",
@@ -90,7 +126,19 @@
           "cap": 2
         }
       ],
-      "officialWeight": 10
+      "officialWeight": 10,
+      "bandAnchors": {
+        "60": "有漏斗无测算逻辑，KPI 只有曝光",
+        "75": "浏览 / 互动 / 转化漏斗带测算逻辑，但缺基线或工具或复盘机制",
+        "85": "漏斗 + 测算逻辑（转化率来源）+ 基线 + 工具 + 复盘机制 + 数据来源口径（含模拟标注）",
+        "92": "85 档全部 + KPI 与预算联动的三情景 + 归因方法说明"
+      },
+      "evidenceRequired": [
+        "漏斗测算表（各层转化率 + 来源）",
+        "KPI 表（基线 / 目标 / 工具 / 周期）",
+        "复盘机制原句",
+        "模拟数据标注"
+      ]
     },
     {
       "id": "plan",
@@ -109,7 +157,19 @@
           "cap": 2
         }
       ],
-      "officialWeight": 10
+      "officialWeight": 10,
+      "bandAnchors": {
+        "60": "有排期与预算但单价无来源，无机动金",
+        "75": "三阶段排期 + 分工 + 预算 = Σ 单价 × 量，但 ≥ 20% 单价无来源或无风险应急",
+        "85": "三阶段排期 + 分工 + 预算 = Σ 单价 × 量（刊例来源）+ 机动金 + 风险应急",
+        "92": "85 档全部 + 预算与渠道章动作逐项对账 + ≤ 企业承受能力说明"
+      },
+      "evidenceRequired": [
+        "排期表（三阶段）",
+        "预算表（合计 + 机动金 + 单价来源列）",
+        "分工表",
+        "风险应急表"
+      ]
     },
     {
       "id": "innovation",
@@ -122,7 +182,18 @@
         "5": "内容创意机制（话题 / 挑战 / UGC）+ 与企业现状差异 + 可持续价值"
       },
       "machineCapRules": [],
-      "officialWeight": 10
+      "officialWeight": 10,
+      "bandAnchors": {
+        "60": "有创意但孤立，与企业现有做法差异不明",
+        "75": "内容创意机制（话题 / 挑战 / UGC）其一 + 与企业现状差异说明",
+        "85": "创意机制 + 与企业现状差异 + 可持续价值（二次传播 / 资产沉淀）+ 可一句话复述",
+        "92": "85 档全部 + 创意与洞察 / 平台机制一一对应 + 候选创意对照"
+      },
+      "evidenceRequired": [
+        "创意机制原句（话题 / 挑战 / UGC）",
+        "与企业现状差异对照",
+        "可持续价值说明"
+      ]
     },
     {
       "id": "structure",
@@ -146,7 +217,19 @@
           "cap": 3
         }
       ],
-      "officialWeight": 0
+      "officialWeight": 0,
+      "bandAnchors": {
+        "60": "9 要素齐全但引用不规范或 ≥ 3 处图表无来源",
+        "75": "要素齐全 + 来源配对 ≥ 90% + 禁语 0",
+        "85": "9 要素齐全 + 来源配对 + 禁语 0 + 合规清单（广告法 / 平台规则）",
+        "92": "85 档全部 + 抽 10 个数字无矛盾 + 示例数据标记 100% 覆盖"
+      },
+      "evidenceRequired": [
+        "9 要素对应标题清单",
+        "图表来源配对抽查（抽 5 张）",
+        "合规清单位置",
+        "禁语命中清单"
+      ]
     }
   ],
   "pitchDimensions": [
@@ -158,7 +241,19 @@
         "1": "顺序随意、整页文字",
         "3": "关键页齐全但无钩子",
         "5": "18–20 页、一页一结论句、每页 ≥ 1 个数字、图表 ≥ 8、与书面材料数字一致"
-      }
+      },
+      "bandAnchors": {
+        "60": "页数在区间内，但 ≥ 30% 页标题是名词短语而非结论句，整页文字页 ≥ 2，图表 < 5",
+        "75": "关键页齐全、结论句标题 ≥ 80%、图表 ≥ 8，但有 1–2 处数字与书面材料不一致，或无开场钩子 / 结尾回扣",
+        "85": "一页一结论句 + 每页 ≥ 1 个数字 + 图表 ≥ 8 + 抽查数字全部与 numbers.json 一致 + 开场钩子 + 结尾回扣 + 备用页在末尾",
+        "92": "85 档全部 + 每页 note 是可讲的判断句（不念 PPT）+ 示例数据页 note 带标注 + 字号 / 配色符合投影规范 + 关键证据可视化（调研照片 / 样稿 / 对比图）"
+      },
+      "evidenceRequired": [
+        "slides.json 正文页数与 checks.json.pitch.deckPages 的对照结果",
+        "结论句标题比例（逐页标题统计）",
+        "抽 5 个数字与 numbers.json 比对（列页号与 key）",
+        "开场页与结尾页标题原文"
+      ]
     },
     {
       "id": "script",
@@ -168,7 +263,20 @@
         "1": "超时或流水账",
         "3": "字数合适但段落平均",
         "5": "1650–1950 字、前 150 字钩子、每段首句结论、结尾回扣"
-      }
+      },
+      "bandAnchors": {
+        "60": "字数在区间 ±15% 内但无 [mm:ss] 时间标注，段落平均分配，开场是自我介绍",
+        "75": "字数在区间内、段落有时间标注、前 150 字有钩子，但首句结论比例 < 80% 或结尾无回扣",
+        "85": "字数区间 + 时间标注合计 = 时长 × 92–95% + 前 150 字钩子 + 首句结论 ≥ 80% + 结尾回扣 + 平均句长 ≤ 25 字 + 示例数据段带标注",
+        "92": "85 档全部 + 方案 / 牵引力段占比最高（非平均）+ 数字具象化换算 ≥ 2 处 + 讲者交接语 ≤ 5 字 + 关键数据前有停顿提示"
+      },
+      "evidenceRequired": [
+        "讲稿总字数与估算时长（字数 ÷ 190 字/分钟）",
+        "前 150 字原文中的钩子句",
+        "段落时间标注合计与 pitch.minutes 的差",
+        "首句为结论的段落比例",
+        "示例数据标注段落数 vs 引用 synthetic 数字的段落数"
+      ]
     },
     {
       "id": "qa",
@@ -178,7 +286,19 @@
         "1": "无题库",
         "3": "< 20 题",
         "5": "≥ 40 题六维度、三段式、主答人"
-      }
+      },
+      "bandAnchors": {
+        "60": "题库 ≥ 20 题但维度不均（某维度 < 4 题）或答案无三段式 / 无主答人",
+        "75": "≥ qaMin 题、各维度 ≥ 4、三段式与主答人齐全，但尖锐题 < 8，或单答 > 150 字，或“证据”段是口号而非数字",
+        "85": "≥ qaMin 题 + 各维度 ≥ 4 + 三段式 + 主答人 + 尖锐题 ≥ 8（含示例数据如何替换、预算 / 融资合理性、最大短板）+ 每题证据引用 numbers.json 或正文位置",
+        "92": "85 档全部 + 针对本方案最薄弱的三个维度各 ≥ 3 题 + 抽查答案数字与正文一致 + “承认短板并给方案”的题 ≥ 3"
+      },
+      "evidenceRequired": [
+        "题数与各维度题数统计",
+        "尖锐题清单（列 Q 号）",
+        "抽 3 题核对三段式 / 主答人 / 字数",
+        "抽 3 题核对答案数字与 numbers.json"
+      ]
     }
   ],
   "hardGates": [
@@ -188,8 +308,78 @@
     "cross_doc_consistency",
     "forbidden_terms_adlaw"
   ],
-  "version": "2026.1",
+  "version": "2026.2",
   "officialPitchTotal": 40,
   "officialWrittenTotal": 60,
-  "officialEstimateRule": "written = Σ(score ÷ 5 × officialWeight)；pitch = Σ pitchDimensions(score ÷ 5 × weight) × officialPitchTotal ÷ 100；total = written + pitch"
+  "officialEstimateRule": "written = Σ(score ÷ 5 × officialWeight)；pitch = Σ pitchDimensions(score ÷ 5 × weight) × officialPitchTotal ÷ 100；total = written + pitch",
+  "bands": {
+    "60": {
+      "label": "及格 / 省赛合格线",
+      "dimensionScore": 3.0,
+      "meaning": "要素齐全但靠常识与二手数据撑场，评委能一眼找到 ≥ 3 处无来源数字或空话"
+    },
+    "75": {
+      "label": "省一等 / 国赛入围",
+      "dimensionScore": 3.75,
+      "meaning": "证据链基本完整、数字有来源，但关键维度仍有一项核心证据缺失或不可核实"
+    },
+    "85": {
+      "label": "国银（全国二等奖）",
+      "dimensionScore": 4.25,
+      "meaning": "每个维度的 evidenceRequired 全部可定位，仅剩表达/深度层面的差距"
+    },
+    "92": {
+      "label": "国金（全国一等奖）",
+      "dimensionScore": 4.6,
+      "meaning": "证据可追溯到表/图/文献号，跨章节数字零矛盾，创意与结论可一句话复述并经数据验证"
+    }
+  },
+  "scoringRules": {
+    "bandFirst": "先按 bandAnchors 定档（<60 / 60 / 75 / 85 / 92），再在该档对应的 dimensionScore ±0.25 内按 anchors 1/3/5 微调，最后施加 cap",
+    "citationRequired": true,
+    "citationFormats": [
+      "05_正文/NN_xxx.md#小节标题",
+      "05_正文/NN_xxx.md#表 N-M / 图 N-M",
+      "03_财务/财务摘要.md#表名",
+      "06_路演/slides.json#第 N 页",
+      "06_路演/讲稿.md#[mm:ss]",
+      "06_路演/答辩题库.md#Qn"
+    ],
+    "noCitationCap": 2,
+    "evidenceRequiredMissingCap": {
+      "anyMissing": 3.5,
+      "halfOrMoreMissing": 2.5
+    },
+    "unsourcedNumbersCap": {
+      "threshold": 3,
+      "cap": 3,
+      "note": "本维度证据段落中 ≥ 3 个数字无来源 / 文献号 / numbers.json key"
+    },
+    "syntheticUnmarkedCap": 2,
+    "templateLanguageCap": {
+      "threshold": 2,
+      "cap": 3,
+      "note": "本维度对应章节出现 ≥ 2 处禁语、弱评价词堆砌或万能模板句（如“随着…的发展”“具有重要意义”“进一步加强”）"
+    },
+    "briefResponseMissingCap": 2,
+    "hardGateFailRule": "任一 hardGate 失败：规范类维度 ≤ 2，verdict 首句写“硬门槛未过：<gate>@<位置>”",
+    "fiveRequiresAllAnchorElements": true,
+    "halfStep": 0.5
+  },
+  "judgeFocus": {
+    "investor": [
+      "data",
+      "plan"
+    ],
+    "professor": [
+      "analysis",
+      "insight",
+      "structure"
+    ],
+    "executive": [
+      "channel",
+      "innovation",
+      "plan"
+    ]
+  }
 }

@@ -184,14 +184,14 @@
    - 解析失败：先修复明显格式问题（尾逗号、中文引号、`//` 注释、未闭合括号）再存；仍失败或维度数不符 → **重派该评委一次**（同一任务书，prompt 追加“上次输出的 JSON 无法解析：<错误原文>，请严格重新输出”）；第二次仍失败则该评委本轮缺席：`评审汇总.json.byJudge.<judge> = null`，在《任务解析》异常记录登记。
 5. **汇总** `07_评审/第N轮/评审汇总.json`（契约 §7.6）：
    - `byJudge`：三评委 `total`；`score` = 三评委 **中位数**（官方“去掉最高分和最低分后取平均”在 3 位评委时即中位数；缺席 1 人时取两人均值），另记 `mean`；
-   - `byDimension`：每个维度三评委均值；`minDimension` = 其中最小值；
+   - `byDimension`：每个维度三评委均值；`minDimension` = 其中最小值；另记 `minJudgeDimension` = 任一评委任一维度的最低分（评委给 ≤ 2 分意味着触发了证据缺失 / 示例数据未标注 / 命题未回应等封顶规则，不能被均值抹平）；`flags` = 三评委 `flags` 的并集（评委未输出则为空数组）；
    - `machine`：抄机器检查 `summary`；`hardGatePassed`：rubric.hardGates 全部通过（机器检查为准，评委 `hardGates` 为辅，任一来源判失败即失败）；
    - `officialEstimate`：三评委 `officialEstimate.{written,pitch,total}` 各取中位数；
-   - `fixes`：合并三评委 `topFixes` + 机器检查 fail 项 + `质检整改清单.md`，按“同文件同位置”去重，按 `gain ÷ 工作量` 排序，取前 12 条；每条字段 `{ id, owner: "writer|pitch|finance|main", file, where, what, accept, gain }`；
+   - `fixes`：合并三评委 `topFixes` + 机器检查 fail 项 + `质检整改清单.md`（含评委抽检摘要中的无来源数字 / 示例未标注 / 命题缺项），按“同文件同位置”去重，按 `gain ÷ 工作量` 排序（评委给了 `effort` 时用它），取前 12 条；每条字段 `{ id, owner: "writer|pitch|finance|main", file, where, what, accept, gain }`，`accept` 优先原样采用评委 topFixes 的 `accept` 或质检清单的“验收”列；
    - `converged`：N ≥ 2 且 `score − 上一轮 score < 2`；`remaining`：本轮仍未解决的问题（字符串数组，判定 b 时必填）。
    同时写人读版 `修改清单.md`（表：序号 / owner / 文件与位置 / 现状 / 改法 / 验收 / 预期提升），并调用 `update_progress(stage="review", status="running", round=N, note="第N轮 中位数 xx，最低维度 x.x，硬门槛 通过|未过")`。
 6. **判定**（按顺序）：
-   a. `score ≥ targetScore` 且 `minDimension ≥ 3` 且 `hardGatePassed` → 评审结束，`update_progress(stage="review", status="done", round=N)`，进入 Step 8；
+   a. `score ≥ targetScore` 且 `minDimension ≥ 3` 且 `minJudgeDimension ≥ 2.5` 且 `hardGatePassed` 且 `flags` 不含 `synthetic_unmarked` / `anonymity` / `brief_not_answered` → 评审结束，`update_progress(stage="review", status="done", round=N)`，进入 Step 8；
    b. 否则若 `N ≥ reviewRounds` 或 `converged` → 停止迭代，`remaining` 写清剩余问题，进入 Step 8（交付摘要必须原样列出 `remaining`）；
    c. 否则进入修改轮。
 7. **修改轮**（只改 `修改清单.md` 中的条目）：

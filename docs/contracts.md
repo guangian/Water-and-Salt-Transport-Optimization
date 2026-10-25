@@ -318,7 +318,7 @@
   "topFixes": [ { "priority": 1, "where": "02_品牌现状分析.md §2.3", "what": "补 384 份问卷的样本结构表", "gain": "+3" } ],
   "verdict": "接近一等奖水平；修复前三项后可达 85+" }
 ```
-汇总 `07_评审/第N轮/评审汇总.json`：`{ round, score（三评委中位数，缺席 1 人时取均值）, mean, byJudge, byDimension, minDimension, machine: {…}, hardGatePassed, officialEstimate: {written, pitch, total}, fixes: [{ id, owner: "writer|pitch|finance|main", file, where, what, accept, gain }], converged: bool, remaining: string[] }`。`rubric` 字段固定为 `"tracks/<赛道>/rubric.json"`。
+汇总 `07_评审/第N轮/评审汇总.json`：`{ round, score（三评委中位数，缺席 1 人时取均值）, mean, byJudge, byDimension, minDimension, minJudgeDimension?（任一评委任一维度最低分，可选）, flags?（三评委 flags 并集，可选，如 synthetic_unmarked / anonymity / brief_not_answered）, machine: {…}, hardGatePassed, officialEstimate: {written, pitch, total}, fixes: [{ id, owner: "writer|pitch|finance|main", file, where, what, accept, gain }], converged: bool, remaining: string[] }`。`rubric` 字段固定为 `"tracks/<赛道>/rubric.json"`。
 
 ### 7.7 机器检查 `07_评审/第N轮/机器检查.json`
 
@@ -333,7 +333,7 @@
 
 ### 7.8 赛道文件
 
-- `rubric.json`：`{ "track", "dimensions": [ { "id", "name", "weight", "official": "品牌现状分析准确性 10", "anchors": { "1": "…", "3": "…", "5": "…" }, "machineCapRules": [ { "check": "has_primary_research", "when": "fail", "cap": 2 } ] } ], "targetScore": 85, "minDimension": 3 }`
+- `rubric.json`：`{ "track", "dimensions": [ { "id", "name", "weight", "official": "品牌现状分析准确性 10", "anchors": { "1": "…", "3": "…", "5": "…" }, "bandAnchors"?: { "60": "…", "75": "…", "85": "…", "92": "…" }, "evidenceRequired"?: ["…"], "machineCapRules": [ { "check": "has_primary_research", "when": "fail", "cap": 2 } ] } ], "targetScore": 85, "minDimension": 3, "bands"?: {…}, "scoringRules"?: [...], "judgeFocus"?: {…} }`（带 ? 的为 2026.2 起的可选键，只供评委阅读；`checks.py` 只读 `hardGates`）
 - `checks.json`：`{ "pageLimit": 80, "wordMin": 0, "chartMin": 20, "sourceMin": 15, "numericDensity": 15, "requiredElements": [ { "id": "summary", "name": "概要", "aliases": ["执行摘要", "摘要"] } ], "forbiddenTerms": ["…"], "anonymityRegex": "…" }`
 - `naming.json`：`{ "fileNameRule": "{抽签编号或学校}-{团队名}-{作品名}", "coverFields": ["作品名称", "团队名称", "指导企业名称"], "coverForbidden": ["院校", "姓名", "联系方式"], "declarations": ["作品原创性声明", "作品版权声明", "企业授权书"], "deckMinPages": 0, "videoMinutes": 10, "qaMinutes": 5 }`
 - `outline.json`：默认章节树 `[ { "no": "1", "title": "引言", "file": "01_引言.md", "pages": [1,2], "mustAnswer": ["…"], "charts": ["…"], "scoring": ["内容完整程度"] } ]`
