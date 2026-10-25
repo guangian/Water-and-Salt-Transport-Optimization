@@ -2,7 +2,7 @@ import path from 'node:path';
 import fsp from 'node:fs/promises';
 import type { Project, ReviewRoundSummary } from '../types.js';
 import { readJsonOrNull, toPosixRelative } from '../util/fs.js';
-import type { NumbersLedger } from '../agent/mcp.js';
+import type { NumberEntry, NumbersLedger } from '../agent/mcp.js';
 
 /** 产出物路径约定（架构 §2.2）→ project.artifacts 的键 */
 export async function scanArtifacts(ws: string): Promise<Record<string, string>> {
@@ -116,7 +116,10 @@ export async function syncReviewIntoProject(ws: string, p: Project): Promise<{ c
 
 export interface NumbersReport {
   ledger: NumbersLedger | null;
-  consistency: { checked: number; consistent: boolean; issues: { key: string; message: string }[] };
+  generatedAt: string;
+  unit: string;
+  entries: (NumberEntry & { consistency: 'ok' | 'mismatch' | 'unchecked' })[];
+  consistency: { checked: number; consistent: boolean; issues: { key: string; message: string }[]; mismatches: unknown[] };
 }
 
 /**
@@ -139,5 +142,16 @@ export async function readNumbers(ws: string): Promise<NumbersReport> {
     if (typeof e.unit === 'string' && e.unit === '%' && typeof e.value === 'number' && e.value > 1.5 && e.value <= 100) issues.push({ key: e.key, message: `单位为 % 但值为 ${e.value}，请统一用小数（0.57）或百分数并在 label 说明` });
   }
   for (const [k, n] of seen) if (n > 1) issues.push({ key: k, message: `key 重复 ${n} 次` });
-  return { ledger, consistency: { checked: entries.length, consistent: issues.length === 0, issues } };
+  // 前端「数字账本」页按扁平结构渲染：generatedAt / unit / entries / consistency.mismatches（取最新一轮机器检查的 crossDoc）
+  const review = await readReview(ws).catch(() => null);
+  const cross = (review?.machine as { crossDoc?: { consistent?: boolean; mismatches?: unknown[] } } | null)?.crossDoc;
+  const mismatchKeys = new Set(((cross?.mismatches ?? []) as { key?: string }[]).map((m) => m.key));
+  const flat = entries.map((e) => ({ ...e, consistency: mismatchKeys.has(e.key) ? 'mismatch' : cross ? 'ok' : 'unchecked' }));
+  return {
+    ledger,
+    generatedAt: ledger?.generatedAt ?? '',
+    unit: ledger?.unit ?? '万元',
+    entries: flat,
+    consistency: { checked: entries.length, consistent: issues.length === 0 && (cross?.consistent ?? true), issues, mismatches: cross?.mismatches ?? [] },
+  };
 }
