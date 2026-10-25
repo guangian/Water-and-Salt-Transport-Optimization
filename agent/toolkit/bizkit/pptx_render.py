@@ -821,6 +821,8 @@ class DeckRenderer:
         for i, rh in enumerate(row_h):
             table.rows[i].height = I(rh)
         numeric_col = [all(_is_numeric(r[j]) for r in rows if r[j].strip()) and any(r[j].strip() for r in rows) for j in range(n_cols)]
+        # 末行是合计 / 总计时整行加粗并用浅金底突出，评委一眼能找到总数
+        total_row = bool(rows) and bool(re.match(r"^(?:合计|总计|小计|总额|总预算|Total)", rows[-1][0].strip(), re.I))
         for i, r in enumerate([cols] + rows):
             for j, val in enumerate(r):
                 cell = table.cell(i, j)
@@ -829,7 +831,9 @@ class DeckRenderer:
                 cell.vertical_anchor = MSO_ANCHOR.MIDDLE
                 cell.fill.solid()
                 header = i == 0
-                cell.fill.fore_color.rgb = RGBColor.from_string(th.primary if header else (th.paper_alt if i % 2 == 0 else th.paper))
+                is_total = total_row and i == n_rows - 1
+                fill = th.primary if header else ("F3EBD0" if is_total else (th.paper_alt if i % 2 == 0 else th.paper))
+                cell.fill.fore_color.rgb = RGBColor.from_string(fill)
                 tf = cell.text_frame
                 tf.word_wrap = True
                 p = tf.paragraphs[0]
@@ -841,7 +845,7 @@ class DeckRenderer:
                     p.alignment = PP_ALIGN.RIGHT if numeric_col[j] else PP_ALIGN.CENTER
                 run = p.add_run()
                 run.text = val
-                self._style_run(run, size, header or j == 0, th.paper if header else th.ink)
+                self._style_run(run, size, header or j == 0 or is_total, th.paper if header else th.ink)
 
     # ---- 卡片 ----
     def _kpi_card(self, slide, x: float, y: float, w: float, h: float, value: str, label: str, accent: str) -> None:
@@ -903,8 +907,23 @@ class DeckRenderer:
         deck_title = str(self.cfg.get("title") or "")
         deck_sub = str(self.cfg.get("subtitle") or "")
         subtitle = str(s.get("subtitle") or "")
-        if deck_title:
-            self._text(slide, 0.9, 0.55, 8.0, 0.5, deck_title, size=16, color=th.accent_light, anchor=MSO_ANCHOR.MIDDLE)
+
+        def _dup(a: str, b: str) -> bool:
+            # 封面上同一句话不重复出现（演示标题常与封面标题 / 副标题相同或互相包含）
+            na, nb = re.sub(r"\s+", "", a), re.sub(r"\s+", "", b)
+            return bool(na and nb) and (na in nb or nb in na)
+
+        shown = [t for t in (title or deck_title, subtitle) if t]
+        kicker = ""
+        for cand in (deck_title, deck_sub):
+            if cand and not any(_dup(cand, t) for t in shown):
+                kicker = cand
+                break
+        if kicker:
+            shown.append(kicker)
+            self._text(slide, 0.9, 0.55, 8.0, 0.5, kicker, size=16, color=th.accent_light, anchor=MSO_ANCHOR.MIDDLE)
+        if deck_sub and any(_dup(deck_sub, t) for t in shown):
+            deck_sub = ""
         self._rect(slide, 0.9, 2.35, 0.08, 1.9, th.accent)
         self._title_block(slide, title or deck_title, 1.2, 2.2, 7.7, 1.9, th.paper, start=44, minimum=32,
                           anchor=MSO_ANCHOR.MIDDLE, prefer_two_lines=True)
@@ -1086,6 +1105,11 @@ class DeckRenderer:
 
     def _chart_body(self, slide, s: Dict[str, Any], pv: Dict[str, Any], top: float) -> None:
         th = self.th
+        if not isinstance(s.get("chart"), dict) and str(s.get("image") or "").strip():
+            # 作者把现成的图表 PNG 写在 chart 页里：按 image 版式渲染，而不是画一块“缺图”占位
+            self.warn(self.cur.index, "chart 页没有 chart 字段但给了 image，已按 image 版式渲染")
+            self._image_body(slide, s, pv, top)
+            return
         spec = self._norm_chart(s.get("chart"))
         insight = str(s.get("insight") or "").strip()
         self._body_chars([insight])

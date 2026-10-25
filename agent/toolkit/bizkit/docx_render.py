@@ -137,12 +137,42 @@ _FN_DEF_RE = re.compile(r"^\[\^(?P<k>[^\]\s]+)\]:\s*(?P<t>.*)$")
 _PAGEBREAK_RE = re.compile(r"^<!--\s*pagebreak\s*-->\s*$", re.I)
 _COMMENT_RE = re.compile(r"<!--.*?-->", re.S)
 # 只认 1–2 位的节号（1 / 2.3 / 4.1.2），避免把“2026 年目标”里的年份当编号剥掉
-_NUM_PREFIX_RE = re.compile(r"^(?:第\s*[一二三四五六七八九十百\d]+\s*[章节部分篇]\s*|\d{1,2}(?:\.\d{1,2}){0,3}\.?\s+|附录\s*[A-Z]\s*[:：]?\s*)")
+_NUM_PREFIX_RE = re.compile(
+    r"^(?:第\s*[一二三四五六七八九十百\d]+\s*(?:部分|[章节部篇])\s*[:：、.．]?\s*"
+    r"|\d{1,2}(?:\.\d{1,2}){0,3}\.?\s+"
+    r"|[A-Z](?:\.\d{1,2}){1,3}\.?\s+"
+    r"|附录\s*[A-Z](?:\s*\d{1,2}(?:\.\d{1,2})*)?\s*[:：、.．]?\s*)"
+)
+# 作者在题注里手写的“图 2-1 / 表1： / Figure 3.”编号（单位词开头的“图 12 个月…”不算）
+_CAP_PREFIX_RE = re.compile(
+    r"^(?:图|表|Figure|Fig\.?|Table)\s*(?:[A-Z]|\d{1,2})(?:\s*[-–—.]\s*\d{1,2})?\s*[:：.．、]?\s*(?![个年月日家万亿元%])"
+)
+# 紧跟表格 / 图片之后的“来源：…”“注：…”整段（作者没写花括号语法）视作来源行
+_PLAIN_SOURCE_RE = re.compile(r"^(?:(?:资料|数据|图片)?来源|注|备注)\s*[:：]")
 
 
 def _strip_numbering(title: str) -> str:
     """作者若已手写“1 引言 / 第一章 引言 / 附录 A 问卷”，去掉以免与自动编号重复。"""
     return _NUM_PREFIX_RE.sub("", title).strip() or title
+
+
+def _strip_caption_prefix(caption: str) -> str:
+    """题注里已带“图 2-1 / 表 3：”编号时去掉，由渲染器统一编号，避免“图 2-1 图 2-1 …”。"""
+    return _CAP_PREFIX_RE.sub("", caption or "", count=1).strip()
+
+
+def _attach_plain_sources(blocks: List["Block"]) -> List["Block"]:
+    """把表格 / 图片后面紧跟的“来源：…”普通段落并入该表 / 图的来源行（排成小号灰字，不再按正文缩进排）。"""
+    out: List[Block] = []
+    for b in blocks:
+        prev = out[-1] if out else None
+        if (isinstance(b, Para) and isinstance(prev, (Table, Figure)) and _PLAIN_SOURCE_RE.match(b.text)
+                and len(b.text) <= 160):
+            prev.sources.append(b.text)
+            prev.sources.extend(b.sources)
+            continue
+        out.append(b)
+    return out
 
 
 def _split_cells(line: str) -> List[str]:
@@ -1098,6 +1128,7 @@ class BookRenderer:
         raw = read_text(path)
         raw = self._anon(raw, rel_path)
         parsed = parse_markdown(raw)
+        parsed.blocks = _attach_plain_sources(parsed.blocks)
         self._fn_order = []
         self._footnotes = parsed.footnotes
         base_dir = path.parent
@@ -1219,7 +1250,12 @@ class BookRenderer:
         cap.paragraph_format.keep_with_next = True
         cap.paragraph_format.space_before = Pt(8)
         cap.paragraph_format.space_after = Pt(4)
-        self._add_runs(cap, f"{label}  {block.caption}" if block.caption else label, self.th.typo.doc_small, True)
+        caption = _strip_caption_prefix(block.caption)
+        self._add_runs(cap, f"{label}  {caption}" if caption else label, self.th.typo.doc_small, True)
+        # 分页控制：≤6 行的短表整体不跨页；长表允许跨页（表头重复），但首尾各至少 3 行在一起，
+        # 不出现只剩 1 行孤悬到下一页；最后一行再拉住来源行
+        n_rows = len(block.rows)
+        keep_idx = set(range(n_rows)) if n_rows <= 6 else set(range(0, min(2, n_rows))) | set(range(max(0, n_rows - 3), n_rows - 1))
 
         table = doc.add_table(rows=1 + len(block.rows), cols=ncols)
         table.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -1258,11 +1294,15 @@ class BookRenderer:
             if is_header:
                 _row_header_repeat(row)
             _row_cant_split(row)
+            last_row = r_idx == len(table.rows) - 1
+            keep_next = is_header or (not last_row and (r_idx - 1) in keep_idx) or (last_row and bool(block.sources))
             for c, cell in enumerate(row.cells):
                 cell.width = Cm(widths[c])
                 cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.CENTER
                 p = cell.paragraphs[0]
                 p.style = self.s_table
+                if keep_next:
+                    p.paragraph_format.keep_with_next = True
                 align = block.aligns[c]
                 if is_header:
                     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -1316,7 +1356,10 @@ class BookRenderer:
             self.stats.warnings.append(f"找不到图片：{block.path}（相对 {base_dir}）")
             self._plain_run(p, f"【缺图：{block.path}】", None, True, self.th.negative, None)
         cap = doc.add_paragraph(style=self.s_caption)
-        self._add_runs(cap, f"{label}  {block.caption}" if block.caption else label, self.th.typo.doc_small, True)
+        if block.sources:
+            cap.paragraph_format.keep_with_next = True
+        caption = _strip_caption_prefix(block.caption)
+        self._add_runs(cap, f"{label}  {caption}" if caption else label, self.th.typo.doc_small, True)
         for s in block.sources:
             self._render_source(s, center=True)
 
