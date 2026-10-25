@@ -859,11 +859,15 @@ class DeckRenderer:
         if em_width(value) * vsize > avail_pt:
             value = truncate_em(value, avail_pt / vsize)
             self.warn(self.cur.index, f"数字「{value}」过长，已截断")
-        label_h = h - 1.45
+        label_h = max(0.6, min(1.3, h - 1.45))
         labels, lsize = self._fit_block([label], inner_w, label_h, 18, 14, 1.15, 0, "标签")
-        self._text(slide, x + 0.15, y + 0.35, inner_w, 1.1, value, size=vsize, bold=True, color=th.primary,
+        # 大数字 + 标签作为一组在卡片内垂直居中（卡片再高也不会上重下空）
+        label_lines = lines_needed(labels[0], lsize, inner_w * 72 - 16)
+        group_h = 1.1 + 0.05 + min(label_h, label_lines * lsize * 1.15 / 72 + 0.12)
+        gy = y + 0.07 + max(0.2, (h - 0.07 - group_h) / 2)
+        self._text(slide, x + 0.15, gy, inner_w, 1.1, value, size=vsize, bold=True, color=th.primary,
                    align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE, line_spacing=1.0)
-        self._text(slide, x + 0.15, y + 1.4, inner_w, label_h, labels[0], size=lsize, color=th.ink,
+        self._text(slide, x + 0.15, gy + 1.15, inner_w, label_h, labels[0], size=lsize, color=th.ink,
                    align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.TOP)
 
     # ================================================================================ 页型
@@ -1028,15 +1032,42 @@ class DeckRenderer:
             card_w = 3.9
             text_w = CONTENT_W_IN - card_w - 0.4
             cx = CONTENT_LEFT_IN + text_w + 0.4
-            self._kpi_card(slide, cx, top + 0.25, card_w, 2.7, highlight, label, th.accent)
+            card_y = top + 0.25 if len(items) > 4 else top + max(0.25, (h - 2.7) / 2 - 0.2)
+            self._kpi_card(slide, cx, card_y, card_w, 2.7, highlight, label, th.accent)
         else:
             text_w = CONTENT_W_IN
-        if items:
-            items, size = self._fit_block(items, text_w, h, BODY_START_PT, BODY_MIN_PT, 1.2, 8.0, "要点")
-            self._bullets(slide, CONTENT_LEFT_IN, top, text_w, h, items, size, gap_pt=8.0)
+        if items and len(items) <= 4 and not highlight:
+            # 稀疏页（≤4 条、无数字卡片）：序号徽标 + 大字陈述行，均分铺满版心，而不是上半页四行小字、下半页空白
+            items = self._statement_rows(slide, items, CONTENT_LEFT_IN, top, text_w, h)
+        elif items:
+            sparse = len(items) <= 4
+            start, gap = (26.0, 14.0) if sparse else (BODY_START_PT, 8.0)
+            items, size = self._fit_block(items, text_w, h, start, BODY_MIN_PT, 1.25 if sparse else 1.2, gap, "要点")
+            used = block_height(items, size, text_w * 72 - 16 - size * 1.3, 1.25 if sparse else 1.2, gap) / 72
+            y = top + max(0.0, min((h - used) / 2 - 0.2, h * 0.25)) if sparse else top
+            self._bullets(slide, CONTENT_LEFT_IN, y, text_w, h - (y - top), items, size, gap_pt=gap,
+                          line_spacing=1.25 if sparse else 1.2)
         pv["texts"] = list(items)
         if highlight:
             pv["kpis"] = [{"value": highlight, "label": label}]
+
+    def _statement_rows(self, slide, items: Sequence[str], x: float, y: float, w: float, h: float) -> List[str]:
+        th = self.th
+        n = len(items)
+        row_h = min(1.3, (h - 0.1) / n)
+        y0 = y + (h - row_h * n) / 2
+        d = 0.6
+        text_x, text_w = x + d + 0.35, w - d - 0.35
+        out: List[str] = []
+        for i, it in enumerate(items):
+            ry = y0 + i * row_h
+            self._badge(slide, x, ry + (row_h - d) / 2, d, str(i + 1), th.primary if i % 2 == 0 else th.accent, 18)
+            its, size = self._fit_block([it], text_w, row_h - 0.1, 26, 20, 1.2, 0, "要点")
+            self._text(slide, text_x, ry, text_w, row_h, its[0], size=size, color=th.ink, anchor=MSO_ANCHOR.MIDDLE)
+            if i < n - 1:
+                self._rect(slide, text_x, ry + row_h - 0.01, text_w, 0.015, th.line)
+            out.append(its[0])
+        return out
 
     # ---- image ----
     def _slide_image(self, slide, s: Dict[str, Any], title: str, pv: Dict[str, Any]) -> None:
@@ -1158,13 +1189,19 @@ class DeckRenderer:
         self._body_chars([k["value"] + k["label"] for k in kpis])
         n = max(len(kpis), 1)
         gap = 0.35
-        card_w = min(3.6, (CONTENT_W_IN - gap * (n - 1)) / n)
-        card_h = 2.9
-        x0 = CONTENT_LEFT_IN + (CONTENT_W_IN - (card_w * n + gap * (n - 1))) / 2
-        y = CONTENT_TOP_IN + (CONTENT_BOTTOM_IN - CONTENT_TOP_IN - card_h) / 2
+        avail_h = CONTENT_BOTTOM_IN - CONTENT_TOP_IN - 0.2
+        # 卡片网格铺满版心：4 张 2×2，≤3 张一行并把卡片拉高，不再在页面中间挤成一条
+        cols, rows = (2, 2) if n == 4 else (n, 1)
+        card_w = (CONTENT_W_IN - gap * (cols - 1)) / cols
+        if rows == 1:
+            card_w = min(card_w, 4.6)
+        card_h = min(3.9 if rows == 1 else 2.6, (avail_h - gap * (rows - 1)) / rows)
+        x0 = CONTENT_LEFT_IN + (CONTENT_W_IN - (card_w * cols + gap * (cols - 1))) / 2
+        y0 = CONTENT_TOP_IN + 0.1 + (avail_h - (card_h * rows + gap * (rows - 1))) / 2
         for i, k in enumerate(kpis):
             accent = th.accent if i % 2 else th.primary
-            self._kpi_card(slide, x0 + i * (card_w + gap), y, card_w, card_h, k["value"], k["label"], accent)
+            r, c = divmod(i, cols)
+            self._kpi_card(slide, x0 + c * (card_w + gap), y0 + r * (card_h + gap), card_w, card_h, k["value"], k["label"], accent)
         pv["kpis"] = kpis
         pv["texts"] = [k["label"] for k in kpis]
 
@@ -1183,21 +1220,28 @@ class DeckRenderer:
         n = len(steps)
         if n == 0:
             return
-        line_y = 3.75
-        x0, x1 = CONTENT_LEFT_IN + 0.9, SLIDE_W_IN - CONTENT_LEFT_IN - 0.9
+        # 节点线横贯版心偏上，每个节点下面挂一张到版心底部的说明卡片：整页被“时间 → 节点 → 卡片”三层填满
+        line_y = CONTENT_TOP_IN + 1.35
+        cell_w = min(3.4, (CONTENT_W_IN - 0.2 * (n - 1)) / n)
+        x0, x1 = CONTENT_LEFT_IN + cell_w / 2, CONTENT_LEFT_IN + CONTENT_W_IN - cell_w / 2
         spacing = (x1 - x0) / (n - 1) if n > 1 else 0
-        self._rect(slide, x0 - 0.3, line_y - 0.025, (x1 - x0) + 0.6, 0.05, th.secondary_light)
-        cell_w = min(spacing if n > 1 else 4.0, 3.4)
+        self._rect(slide, CONTENT_LEFT_IN, line_y - 0.025, CONTENT_W_IN, 0.05, th.secondary_light)
         d = 0.62
+        card_y = line_y + d / 2 + 0.3
+        card_h = CONTENT_BOTTOM_IN - 0.1 - card_y
         for i, st in enumerate(steps):
             cx = x0 + i * spacing if n > 1 else (x0 + x1) / 2
-            self._badge(slide, cx - d / 2, line_y - d / 2, d, str(i + 1), th.accent if i % 2 else th.primary, 18)
+            accent = th.accent if i % 2 else th.primary
             whens, wsize = self._fit_block([st["when"]], cell_w, 0.9, 20, 16, 1.1, 0, "时间")
-            self._text(slide, cx - cell_w / 2, line_y - d / 2 - 1.0, cell_w, 0.9, whens[0], size=wsize, bold=True,
+            self._text(slide, cx - cell_w / 2, line_y - d / 2 - 0.95, cell_w, 0.85, whens[0], size=wsize, bold=True,
                        color=th.primary, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.BOTTOM)
-            whats, hsize = self._fit_block([st["what"]], cell_w, 2.2, 18, 16, 1.15, 0, "步骤")
-            self._text(slide, cx - cell_w / 2, line_y + d / 2 + 0.12, cell_w, 2.2, whats[0], size=hsize, color=th.ink,
-                       align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.TOP)
+            self._badge(slide, cx - d / 2, line_y - d / 2, d, str(i + 1), accent, 18)
+            self._rect(slide, cx - 0.015, line_y + d / 2, 0.03, 0.3, th.secondary_light)
+            self._rect(slide, cx - cell_w / 2, card_y, cell_w, card_h, th.paper_alt, MSO_SHAPE.ROUNDED_RECTANGLE)
+            self._rect(slide, cx - cell_w / 2 + 0.2, card_y, cell_w - 0.4, 0.06, accent)
+            whats, hsize = self._fit_block([st["what"]], cell_w - 0.3, card_h - 0.4, 20 if n <= 4 else 18, 16, 1.2, 0, "步骤")
+            self._text(slide, cx - cell_w / 2 + 0.15, card_y + 0.25, cell_w - 0.3, card_h - 0.4, whats[0], size=hsize,
+                       color=th.ink, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.TOP)
         pv["steps"] = steps
         pv["texts"] = [f"{st['when']} {st['what']}".strip() for st in steps]
 

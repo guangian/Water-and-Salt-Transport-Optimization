@@ -550,6 +550,16 @@ def _set_first_line_chars(paragraph_or_style, chars: int) -> None:
     ind.set(qn("w:firstLine"), str(int(chars * 12 * 20)))
 
 
+def _set_char_spacing(run, pt: float) -> None:
+    """字符间距（w:spacing，单位 1/20 pt）：封面文种标签用拉开的字距做弱化处理。"""
+    rpr = run._r.get_or_add_rPr()
+    for old in rpr.findall(qn("w:spacing")):
+        rpr.remove(old)
+    sp = OxmlElement("w:spacing")
+    sp.set(qn("w:val"), str(int(pt * 20)))
+    rpr.append(sp)
+
+
 def _add_field(paragraph, instr: str, cached: str = "", dirty: bool = False) -> None:
     """复杂域：begin / instrText / separate / 缓存结果 / end。"""
     r1 = paragraph.add_run()
@@ -1015,18 +1025,27 @@ class BookRenderer:
                 self._plain_run(p, text, size, bold, color, cjk or self.cjk_head)
             return p
 
-        line("", 12, before=60)
+        # 层级：弱化的文种标签（小字、拉开字距）→ 短金线 → 主标题 32pt（超长降到 30pt）→ 副标题 17pt → 细线 → 两列对齐信息块
+        line("", 12, before=72)
         if doc_type:
-            line(doc_type, 14, color=self.th.secondary, after=6)
+            p = line(doc_type, 11, color=self.th.secondary, after=0)
+            for r in p.runs:
+                _set_char_spacing(r, 6.0)
+        line("", 12, before=54)
         p = line("", 1)
-        self._gold_rule(p)
-        line(str(cover.get("title") or ""), self.th.typo.doc_title, bold=True, color=self.th.primary, before=18, after=10)
+        self._gold_rule(p, half_width_cm=1.6, size_eighths=18)
+        title = str(cover.get("title") or "")
+        title_pt = 32.0 if self._text_width_cm(title, 32.0) <= self.text_width_cm - 1.0 else 30.0
+        line(title, title_pt, bold=True, color=self.th.primary, before=16, after=8)
         if cover.get("subtitle"):
-            line(str(cover["subtitle"]), 18, color=self.th.primary_dark, after=14)
+            line(str(cover["subtitle"]), 17, color=self.th.primary_dark, after=10)
         p = line("", 1)
-        self._gold_rule(p)
-        line("", 12, before=90)
+        self._gold_rule(p, half_width_cm=5.0, size_eighths=6)
+        line("", 12, before=96)
         rows = [("团队名称", cover.get("teamName")), ("指导企业", cover.get("company")), ("参赛组别", cover.get("group")), ("完成日期", cover.get("date"))]
+        # 两列对齐：标签右对齐到同一制表位（冒号对齐），内容左对齐到其右侧制表位；制表位在 Word / LibreOffice 下表现一致
+        tab_r = Cm(self.text_width_cm * 0.46)
+        tab_l = Cm(self.text_width_cm * 0.46 + 0.45)
         for label, val in rows:
             if not val:
                 continue
@@ -1034,25 +1053,35 @@ class BookRenderer:
             if val.startswith(label):
                 val = val[len(label):].lstrip("：: ")
             p = doc.add_paragraph()
-            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            p.paragraph_format.space_after = Pt(6)
-            p.paragraph_format.line_spacing = 1.3
-            self._plain_run(p, f"{label}：", 14, False, self.th.secondary, self.cjk_head)
-            self._plain_run(p, val, 14, False, self.th.ink, self.cjk_body)
+            p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            p.paragraph_format.space_after = Pt(7)
+            p.paragraph_format.line_spacing = 1.25
+            p.paragraph_format.tab_stops.add_tab_stop(tab_r, WD_TAB_ALIGNMENT.RIGHT)
+            p.paragraph_format.tab_stops.add_tab_stop(tab_l, WD_TAB_ALIGNMENT.LEFT)
+            self._plain_run(p, f"\t{label}：", 12, False, self.th.secondary, self.cjk_head)
+            self._plain_run(p, f"\t{val}", 13, False, self.th.ink, self.cjk_body)
+        if cover.get("extraLines"):
+            line("", 6, before=10)
         for extra in cover.get("extraLines") or []:
-            line(str(extra), 12, color=self.th.secondary, after=4, cjk=self.cjk_body)
+            line(str(extra), 11, color=self.th.secondary, after=4, cjk=self.cjk_body)
 
-    def _gold_rule(self, paragraph) -> None:
-        """金色装饰线：用段落下边框实现，比插图形更稳。"""
+    def _text_width_cm(self, text: str, size_pt: float) -> float:
+        """粗估一行文字宽度：中文按 1 em、西文按 0.55 em。"""
+        em = sum(1.0 if _CJK_RE.match(ch) else 0.55 for ch in text)
+        return em * size_pt * 0.03528
+
+    def _gold_rule(self, paragraph, half_width_cm: float = 4.5, size_eighths: int = 12) -> None:
+        """金色装饰线：用段落下边框实现，比插图形更稳。half_width_cm 为线的半宽（居中），size_eighths 为线粗（1/8 pt）。"""
         pbdr = _ppr_child(paragraph, "w:pBdr")
         bottom = OxmlElement("w:bottom")
         bottom.set(qn("w:val"), "single")
-        bottom.set(qn("w:sz"), "12")
+        bottom.set(qn("w:sz"), str(size_eighths))
         bottom.set(qn("w:space"), "1")
         bottom.set(qn("w:color"), self.th.accent)
         pbdr.append(bottom)
-        paragraph.paragraph_format.left_indent = Cm(3.5)
-        paragraph.paragraph_format.right_indent = Cm(3.5)
+        indent = max(0.5, self.text_width_cm / 2 - half_width_cm)
+        paragraph.paragraph_format.left_indent = Cm(indent)
+        paragraph.paragraph_format.right_indent = Cm(indent)
 
     # ---- 页眉页脚 ----
     def _header_footer(self, section, header_text: str, page_fmt: str, link_header: bool) -> None:
