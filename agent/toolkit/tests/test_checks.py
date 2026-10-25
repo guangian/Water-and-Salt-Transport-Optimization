@@ -249,7 +249,7 @@ def test_examples_do_not_crash(tmp_path: Path, name: str, track: str) -> None:
                       "forbidden_terms_adlaw", "weak_terms", "synthetic_marker_coverage", "cross_doc_consistency"}
     if name == "ws_demo":
         if ".pdf" in c["page_count"]["detail"]:
-            assert c["page_count"]["pages"] == 25  # 产出/*.pdf 真页数（pypdf）；干净克隆没有 PDF 时走估算
+            assert 18 <= c["page_count"]["pages"] <= 30  # 产出/*.pdf 真页数（pypdf）；样式微调会改变 1–2 页，只卡区间；干净克隆没有 PDF 时走估算
         else:
             assert c["page_count"]["pages"] > 0
         assert c["has_competitor_matrix"]["status"] == PASS
@@ -257,8 +257,9 @@ def test_examples_do_not_crash(tmp_path: Path, name: str, track: str) -> None:
     else:
         assert c["three_statement_check"]["status"] == PASS  # 财务模型.xlsx「检查」页
         assert c["financing_consistency"]["status"] == PASS
-        assert c["cross_doc_consistency"]["status"] == FAIL  # ws_demo2 的 PPT 里本就有两处与账本不一致
-        assert {m["key"] for m in r["crossDoc"]["mismatches"]} == {"breakeven_month", "post_money"}
+        assert c["cross_doc_consistency"]["status"] == FAIL  # ws_demo2 的 PPT 里本就有两处与账本不一致（现金最低点 -396 vs 账本 -58.1、投后估值）
+        # “18 个月里程碑：从首发到盈亏平衡”里的 18 离关键词太远，不再当作盈亏平衡月份写错（只看紧邻关键词的数字）
+        assert {m["key"] for m in r["crossDoc"]["mismatches"]} == {"min_cash", "post_money"}
 
 
 # --------------------------------------------------------------------------- 4. 单章模式与 CLI

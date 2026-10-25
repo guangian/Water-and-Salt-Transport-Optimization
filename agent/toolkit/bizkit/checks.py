@@ -56,6 +56,7 @@ _NUM_RE = re.compile(r"(?<![A-Za-z0-9_.])([-−–]?\d[\d,，]*(?:\.\d+)?)\s*(" 
 _NOT_QUANTITY_BEFORE = re.compile(r"(第\s*|\d\s*[:：]|[_/\\]|\d[\-–—~～]|[→←➔]\s*|->\s*|双|[A-Za-z])$")
 _NOT_QUANTITY_AFTER = re.compile(r"^\s*([_/\\:：\-–][0-9A-Za-z\u4e00-\u9fff]|[→➔]|->|月(?!度)|日|号)")
 _DIGIT_RE = re.compile(r"\d")
+_DIGIT_UNIT_RE = re.compile(r"\d\s*(万亿|亿|万|千|百|元|%|％|个百分点|pp|倍)")
 _MARKER_RE = re.compile(r"示例数据")
 _SOURCE_HINT_RE = re.compile(r"来源|据《|\[\d+\]|引自")
 _SENT_END = "。！？；!?;\n"
@@ -2263,12 +2264,12 @@ _KEY_KEYWORDS: Dict[str, List[str]] = {
     "som": ["som", "可获得市场"],
     "som_y1": ["som", "可获得市场", "首年可获得"],
     "sample_size": ["有效样本量", "有效样本", "有效问卷", "样本量", "份有效", "有效回收", "有效答卷", "有效"],
-    "budget_total": ["预算总额", "总预算", "预算合计", "预算总计", "传播预算", "推广预算", "营销预算", "整体预算", "总投入", "预算规模", "预算"],
+    "budget_total": ["预算总额", "总预算", "预算合计", "预算总计", "传播预算", "推广预算", "营销预算", "整体预算", "总投入", "预算规模"],
     "budget_per_person": ["人均预算", "人均费用", "人均"],
     "headcount": ["参会人数", "参与人数", "总人数", "人数规模", "人数"],
     "roi": ["roi", "投入产出比", "投资回报率"],
     "kpi_exposure": ["曝光量", "曝光"],
-    "kpi_conversion": ["转化量", "成交订单", "转化"],
+    "kpi_conversion": ["转化量", "成交订单", "转化率", "转化目标"],
     "kpi_interaction": ["互动量", "互动"],
     "kpi_satisfaction": ["满意度"],
     "roe_y3": ["第3年roe", "roe", "净资产收益率"],
@@ -2429,11 +2430,17 @@ def run_cross_doc(ws: Workspace) -> Tuple[Dict[str, Any], Dict[str, Any]]:
                 if not cands:
                     continue
                 ok = [c for c in cands if any(abs(v - expected) <= tol for v in c[0])]
+                # 金额 / 百分比条目：没带单位的裸数字（“连续 2 周”“第 1 阶段”）只能用来确认一致，不能据此报不一致
+                if _entry_class(unit) in ("money", "pct"):
+                    cands = [c for c in cands if _DIGIT_UNIT_RE.search(c[1])]
                 if ok:
                     found[g] = found[g] if found[g] is not None else _display(expected, unit)
-                elif len(cands) <= 2 and not excluded:
-                    after = [c for c in cands if c[2] >= pos]
-                    pick = min(after or cands, key=lambda c: abs(c[2] - pos))
+                    continue
+                # 报不一致只看紧邻关键词的数字：同句里“媒介 228 万元”“转化率 3.5%”之类别的指标不算总预算 / ROI 写错
+                near = [c for c in cands if (pos + len(kw) <= c[2] <= pos + len(kw) + _NEAR_AFTER) or (0 <= pos - c[2] - len(c[1]) <= _NEAR_BEFORE)]
+                if near and len(near) <= 2 and not excluded:
+                    after = [c for c in near if c[2] >= pos]
+                    pick = min(after or near, key=lambda c: abs(c[2] - pos))
                     bad[g].append({"file": file, "line": line, "text": text.strip()[:120], "found": pick[1], "value": _display(pick[0][0], unit)})
         if any(found.values()) or any(bad.values()):
             checked.append(key)
