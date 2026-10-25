@@ -23,7 +23,8 @@ Claude Agent SDK（Claude Code 同源内核）+ 超详细领域规范（`agent/C
 ## 快速开始（Windows）
 
 ```powershell
-# 0. 前置：Node 20+、pnpm、Python 3.10+、Git for Windows（Bash 工具）
+# 0. 前置：Node 20+、pnpm、Python 3.10+、Git for Windows（Bash 工具）；任意电脑先跑一键体检，缺什么它会直接给修复命令
+powershell -ExecutionPolicy Bypass -File scripts\doctor.ps1   # Linux/macOS：bash scripts/doctor.sh
 powershell -ExecutionPolicy Bypass -File scripts\setup.ps1     # pnpm install + pip install + 自检
 # 1. 密钥：系统环境变量 BIZGOLD_API_BASE_URL / BIZGOLD_API_KEY，或启动后在「设置」页填写
 pnpm dev        # 开发模式：http://localhost:5173（后端 5178）

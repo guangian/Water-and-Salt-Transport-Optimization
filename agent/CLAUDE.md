@@ -189,11 +189,12 @@
    - `machine`：抄机器检查 `summary`；`hardGatePassed`：rubric.hardGates 全部通过（机器检查为准，评委 `hardGates` 为辅，任一来源判失败即失败）；
    - `officialEstimate`：三评委 `officialEstimate.{written,pitch,total}` 各取中位数；
    - `fixes`：合并三评委 `topFixes` + 机器检查 fail 项 + `质检整改清单.md`（含评委抽检摘要中的无来源数字 / 示例未标注 / 命题缺项），按“同文件同位置”去重，按 `gain ÷ 工作量` 排序（评委给了 `effort` 时用它），取前 12 条；每条字段 `{ id, owner: "writer|pitch|finance|main", file, where, what, accept, gain }`，`accept` 优先原样采用评委 topFixes 的 `accept` 或质检清单的“验收”列；
-   - `converged`：N ≥ 2 且 `score − 上一轮 score < 2`；`remaining`：本轮仍未解决的问题（字符串数组，判定 b 时必填）。
+   - `converged`：仅当 N ≥ 2 **且本轮 `fixes` 与上一轮完全相同（同文件同位置同改法，说明已无法推进）** 才为 true；分数涨幅小不算收敛。`remaining`：本轮仍未解决的问题（字符串数组，判定 b 时必填）。
    同时写人读版 `修改清单.md`（表：序号 / owner / 文件与位置 / 现状 / 改法 / 验收 / 预期提升），并调用 `update_progress(stage="review", status="running", round=N, note="第N轮 中位数 xx，最低维度 x.x，硬门槛 通过|未过")`。
 6. **判定**（按顺序）：
    a. `score ≥ targetScore` 且 `minDimension ≥ 3` 且 `minJudgeDimension ≥ 2.5` 且 `hardGatePassed` 且 `flags` 不含 `synthetic_unmarked` / `anonymity` / `brief_not_answered` → 评审结束，`update_progress(stage="review", status="done", round=N)`，进入 Step 8；
-   b. 否则若 `N ≥ reviewRounds` 或 `converged` → 停止迭代，`remaining` 写清剩余问题，进入 Step 8（交付摘要必须原样列出 `remaining`）；
+   b. 否则若 `N ≥ reviewRounds`（任务书给的是**上限**，不是目标轮数）或 `converged` → 停止迭代，`remaining` 写清剩余问题，进入 Step 8（交付摘要必须原样列出 `remaining`，并逐条说明为何未改）；
+   c′. 只要 `fixes` 非空且 N < reviewRounds，就必须进入修改轮——“改到评委提不出问题为止”是默认目标，不得以时间或分数已达标以外的理由提前收尾；评委 `topFixes` 中标为 `blocker` / `gain ≥ 2` 的条目一律本轮处理；
    c. 否则进入修改轮。
 7. **修改轮**（只改 `修改清单.md` 中的条目）：
    - 按 `owner` 拆任务书：`任务/修改_第N轮_主笔.md`（writer 项，> 6 条时按章拆成两份 `_主笔1 / _主笔2` 并行）、`任务/修改_第N轮_路演.md`（pitch 项）、`任务/修改_第N轮_财务.md`（finance 项）。每份按「附 B 修改任务书模板」写：条目表 + 可改文件白名单 + “只改清单项，不得重写整章 / 整份”，并写明“先读 `.claude/skills/revision-round/SKILL.md`”。分别派发 `chief-writer` / `pitch-designer` / `financial-modeler`。`owner = main` 的条目（book.json 封面字段、charts.json 单图数据、参考文献条目、匿名词替换）由主代理直接改。

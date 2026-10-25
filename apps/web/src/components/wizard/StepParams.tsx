@@ -129,7 +129,7 @@ export function StepParams({ track, draft, onChange, errors, settings }: { track
             <Segmented value={draft.params.pitchMinutes} onChange={(v) => setParams({ pitchMinutes: v })} options={[{ value: 8, label: '8 分钟' }, { value: 10, label: '10 分钟' }, { value: 15, label: '15 分钟' }]} />
           </Field>
           <Field label="评审轮数" hint="每轮三位评委独立打分 + 机器检查；未达目标分自动修改并重评，提升 <2 分视为收敛。">
-            <Slider value={draft.params.reviewRounds} min={1} max={5} onChange={(v) => setParams({ reviewRounds: v })} format={(v) => `${v} 轮`} marks={[1, 2, 3, 4, 5]} />
+            <Slider value={draft.params.reviewRounds} min={1} max={6} onChange={(v) => setParams({ reviewRounds: v })} format={(v) => `≤ ${v} 轮`} marks={[1, 2, 3, 4, 5, 6]} />
           </Field>
           <Field label="目标分" hint="国金线默认 85 分；每个维度不低于 3/5。">
             <Slider value={draft.params.targetScore} min={70} max={95} onChange={(v) => setParams({ targetScore: v })} format={(v) => `${v} 分`} marks={[70, 75, 80, 85, 90, 95]} />
