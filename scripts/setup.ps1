@@ -1,4 +1,4 @@
-# 金策 BizGold 一键环境准备（Windows PowerShell）
+﻿# 金策 BizGold 一键环境准备（Windows PowerShell）
 # 用法：在项目根目录执行  powershell -ExecutionPolicy Bypass -File scripts\setup.ps1
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot

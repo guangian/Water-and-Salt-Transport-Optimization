@@ -1,4 +1,4 @@
-# 端到端实跑（Windows）：创建示例项目（马大姐电解质软糖 · 品牌策划）→ 上传资料 → 启动运行 → 轮询进度直到完成。
+﻿# 端到端实跑（Windows）：创建示例项目（马大姐电解质软糖 · 品牌策划）→ 上传资料 → 启动运行 → 轮询进度直到完成。
 # 用法：powershell -ExecutionPolicy Bypass -File scripts\e2e_run.ps1 [-BaseUrl http://127.0.0.1:5178/api] [-ReviewRounds 2] [-PageTarget 55] [-TimeoutMin 240] [-Smoke]
 param(
   [string]$BaseUrl = 'http://127.0.0.1:5178/api',
