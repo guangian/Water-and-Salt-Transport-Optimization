@@ -85,7 +85,8 @@ export async function readReview(ws: string): Promise<ReviewData> {
     if (!sum) continue;
     const machine = await readJsonOrNull<MachineCheckReport>(path.join(dir, r.name, '机器检查.json'));
     const judges = await readJudges(r.name);
-    rounds.push({ ...sum, round: sum.round ?? r.round, path: `07_评审/${r.name}`, judges, ...(machine ? { machineReport: machine } : {}) });
+    // 评审汇总.json 里的 machine 只是 summary 计数；前端评审页按完整机器检查报告（checks / crossDoc / hardGates）渲染，有报告就整体替换
+    rounds.push({ ...sum, round: sum.round ?? r.round, path: `07_评审/${r.name}`, judges, ...(machine ? { machine, machineReport: machine } : {}) });
   }
   const latestDir = roundDirs.at(-1);
   const machine = latestDir ? await readJsonOrNull<MachineCheckReport>(path.join(dir, latestDir.name, '机器检查.json')) : null;
