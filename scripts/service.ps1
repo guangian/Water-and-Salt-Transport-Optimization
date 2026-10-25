@@ -24,8 +24,11 @@ function Get-Health {
 function Install-Task {
   if (-not (Test-Path "$root\apps\server\dist\index.js")) { throw '先执行 pnpm build（或 scripts\setup.ps1）再注册服务' }
   New-Item -ItemType Directory -Force -Path (Split-Path -Parent $LogFile) | Out-Null
-  $cmd = "& { Set-Location '$root'; `$env:PYTHONUTF8='1'; node apps\server\dist\index.js *>> '$LogFile' }"
-  $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command $cmd" -WorkingDirectory $root
+  # 用 cmd 的文件重定向而不是 PowerShell 管道：node 在 Windows 上对管道 stdout 是同步写，
+  # 读端一旦不在（宿主退出 / 缓冲填满）服务端就会卡死在日志输出上；重定向到文件句柄没有这个问题。
+  $node = (Get-Command node -ErrorAction Stop).Source
+  $cmd = "/c cd /d `"$root`" && set PYTHONUTF8=1 && `"$node`" apps\server\dist\index.js >> `"$LogFile`" 2>&1"
+  $action = New-ScheduledTaskAction -Execute 'cmd.exe' -Argument $cmd -WorkingDirectory $root
   $trigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
   $settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Days 30) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
   Register-ScheduledTask -TaskName $TaskName -Action $action -Trigger $trigger -Settings $settings -Force | Out-Null
