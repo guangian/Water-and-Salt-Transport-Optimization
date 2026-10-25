@@ -30,7 +30,7 @@ export const DEFAULT_SETTINGS: Settings = {
     pricing: {},
   },
   search: {
-    providers: ['bocha', 'tavily', 'serper', 'bing', 'duckduckgo'],
+    providers: ['bocha', 'tavily', 'serper', 'so360', 'bing', 'duckduckgo'],
     bochaKey: '',
     tavilyKey: '',
     serperKey: '',
@@ -76,7 +76,7 @@ export function deepMerge<T>(base: T, patch: unknown): T {
   return out as T;
 }
 
-const VALID_PROVIDERS: SearchProviderId[] = ['bocha', 'tavily', 'serper', 'bing', 'duckduckgo'];
+const VALID_PROVIDERS: SearchProviderId[] = ['bocha', 'tavily', 'serper', 'so360', 'bing', 'duckduckgo'];
 
 /**
  * 环境变量优先于设置文件（契约 §9）。返回新对象，不改原值。

@@ -58,9 +58,13 @@ START=$(date +%s)
 while true; do
   sleep 60
   P=$(curl -sS "$BASE/projects/$PID")
-  STATUS=$(echo "$P" | python3 -c 'import json,sys; p=json.load(sys.stdin); print(p["status"])')
-  STAGES=$(echo "$P" | python3 -c 'import json,sys; p=json.load(sys.stdin); print(" ".join(f"{k}:{v.get(\"status\",\"-\")[:4]}" for k,v in p.get("stages",{}).items()))')
-  USAGE=$(echo "$P" | python3 -c 'import json,sys; p=json.load(sys.stdin); u=p.get("usage",{}); print(f"turns={u.get(\"turns\",0)} in={u.get(\"inputTokens\",0)} out={u.get(\"outputTokens\",0)}")')
+  read -r STATUS STAGES USAGE <<<"$(echo "$P" | python3 -c '
+import json,sys
+p=json.load(sys.stdin)
+st=" ".join(f"{k}:{v.get(\"status\",\"-\")[:4]}" for k,v in p.get("stages",{}).items())
+u=p.get("usage",{})
+print(p["status"], st.replace(" ","|"), f"turns={u.get(\"turns\",0)},in={u.get(\"inputTokens\",0)},out={u.get(\"outputTokens\",0)}")
+')"
   ELAPSED=$(( ($(date +%s) - START) / 60 ))
   echo "[$ELAPSED min] $STATUS | $STAGES | $USAGE"
   if [[ "$STATUS" == "completed" || "$STATUS" == "failed" || "$STATUS" == "stopped" ]]; then break; fi

@@ -1,11 +1,15 @@
 import path from 'node:path';
+import os from 'node:os';
 import crypto from 'node:crypto';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import type { SearchProviderId, SearchResult, Settings } from '../types.js';
 import { readJsonOrNull, writeJsonAtomic } from '../util/fs.js';
 import { createLogger, errorMessage } from '../util/log.js';
 import { decodeEntities, stripTags } from './html.js';
 
 const log = createLogger('search');
+const execFileAsync = promisify(execFile);
 
 export const BROWSER_UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36';
@@ -26,7 +30,7 @@ export interface SearchOutcome {
 
 const MAX_RESULTS = 10;
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
-const MIN_INTERVAL_MS: Record<SearchProviderId, number> = { bocha: 300, tavily: 300, serper: 300, bing: 1500, duckduckgo: 1500 };
+const MIN_INTERVAL_MS: Record<SearchProviderId, number> = { bocha: 300, tavily: 300, serper: 300, so360: 1200, bing: 1500, duckduckgo: 1500 };
 
 type Fetcher = typeof fetch;
 
@@ -194,6 +198,90 @@ export function looksRelevant(query: string, results: SearchResult[]): boolean {
   });
 }
 
+
+/**
+ * 解析 360 搜索结果页：li.res-list > h3.res-title > a（标题；data-mdurl 为真实 URL，href 为 so.com/link 跳转），
+ * 摘要在 p.res-desc / div.res-rich / span.mh-text。广告与聚合卡片（无 data-mdurl 且 href 非站外 http）跳过。
+ */
+export function parseSo360Html(html: string): SearchResult[] {
+  const out: SearchResult[] = [];
+  const parts = html.split(/<li[^>]*class="[^"]*\bres-list\b[^"]*"[^>]*>/i).slice(1);
+  for (const part of parts) {
+    const block = part.split(/<\/li>/i)[0] ?? part;
+    const h3 = /<h3[^>]*class="[^"]*res-title[^"]*"[^>]*>([\s\S]*?)<\/h3>/i.exec(block);
+    if (!h3) continue;
+    const a = /<a\b([^>]*)>([\s\S]*?)<\/a>/i.exec(h3[1] ?? '');
+    if (!a) continue;
+    const attrs = a[1] ?? '';
+    const md = /data-mdurl="([^"]+)"/i.exec(attrs);
+    const href = /href="([^"]+)"/i.exec(attrs);
+    let url = decodeEntities(md?.[1] ?? href?.[1] ?? '');
+    if (url.startsWith('//')) url = 'https:' + url;
+    const title = stripTags(a[2] ?? '');
+    if (!/^https?:\/\//.test(url) || !title) continue;
+    if (/so\.com\/link\?|hao\.360\.com|wenku\.so\.com|browser\.360\.cn|360kan\.com/.test(url)) continue;
+    const dm = /<p[^>]*class="[^"]*res-desc[^"]*"[^>]*>([\s\S]*?)<\/p>|<div[^>]*class="[^"]*res-rich[^"]*"[^>]*>([\s\S]*?)<\/div>|<span[^>]*class="[^"]*mh-text[^"]*"[^>]*>([\s\S]*?)<\/span>/i.exec(block);
+    let snippet = dm ? stripTags(dm[1] ?? dm[2] ?? dm[3] ?? '') : '';
+    if (!snippet) {
+      // 结果卡片变体很多（富媒体 / 文库 / 问答），兜底取 h3 之后的可见文字
+      const after = block.slice(block.indexOf('</h3>') + 5);
+      snippet = stripTags(after).replace(/\s+/g, ' ').trim().slice(0, 180);
+    }
+    let date: string | undefined;
+    const dd = /^(\d{4}年\d{1,2}月\d{1,2}日)\s*-\s*/.exec(snippet);
+    if (dd) {
+      date = dd[1];
+      snippet = snippet.slice(dd[0].length);
+    }
+    out.push({ title, url, snippet, date, provider: 'so360' });
+  }
+  return out;
+}
+
+/**
+ * 360 搜索前面有 WAF（WZWS4 Cookie 握手）：Node fetch 无论如何设置都会被反复 302（疑似按 TLS 会话绑定令牌），
+ * 而 curl 在同一次 -L 调用里复用连接即可通过。因此这里用系统 curl（Linux/macOS 自带，Windows 10 1803+ 自带 curl.exe），
+ * 带 Cookie 罐文件；没有 curl 时退回 fetch（大概率失败，交给下一个提供商）。
+ */
+const SO360_JAR = path.join(os.tmpdir(), 'bizgold-so360.cookies');
+
+async function curlGet(url: string): Promise<string> {
+  const args = ['-sSL', '--max-time', '25', '--compressed', '-A', BROWSER_UA, '-H', 'Accept-Language: zh-CN,zh;q=0.9', '-c', SO360_JAR, '-b', SO360_JAR, url];
+  const { stdout } = await execFileAsync('curl', args, { maxBuffer: 16 * 1024 * 1024, windowsHide: true });
+  return stdout;
+}
+
+let curlAvailable: boolean | null = null;
+async function hasCurl(): Promise<boolean> {
+  if (curlAvailable !== null) return curlAvailable;
+  try {
+    await execFileAsync('curl', ['--version'], { windowsHide: true });
+    curlAvailable = true;
+  } catch {
+    curlAvailable = false;
+  }
+  return curlAvailable;
+}
+
+/** 360 搜索（so.com）：境内外均可直连、无需密钥、结果为中文语料，是无 API key 时的首选网页提供商 */
+export async function searchSo360(query: string, opts: SearchOptions, f: Fetcher): Promise<SearchResult[]> {
+  const url = `https://www.so.com/s?q=${encodeURIComponent(withSite(query, opts.site))}&pn=1&ie=utf8`;
+  let html: string;
+  if (await hasCurl()) {
+    html = await curlGet(url);
+  } else {
+    const res = await f(url, {
+      headers: { 'User-Agent': BROWSER_UA, 'Accept-Language': 'zh-CN,zh;q=0.9', Accept: 'text/html' },
+      signal: AbortSignal.timeout(20000),
+      redirect: 'follow',
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    html = await res.text();
+  }
+  const results = parseSo360Html(html);
+  return looksRelevant(query, results) ? results.slice(0, clampCount(opts.count, 10)) : [];
+}
+
 export async function searchBing(query: string, opts: SearchOptions, f: Fetcher): Promise<SearchResult[]> {
   // cn.bing.com/search 现在 301 到 www.bing.com 首页（丢掉 /search），所以直接请求 www 并带 zh-CN 市场参数
   const url = `https://www.bing.com/search?q=${encodeURIComponent(withSite(query, opts.site))}&mkt=zh-CN&setlang=zh-cn&ensearch=0&count=${clampCount(opts.count, 10)}`;
@@ -294,6 +382,9 @@ export class SearchService {
           if (!cfg.serperKey) continue;
           await this.throttle(p);
           results = await searchSerper(q, cfg.serperKey, normalized, this.fetcher);
+        } else if (p === 'so360') {
+          await this.throttle(p);
+          results = await searchSo360(q, normalized, this.fetcher);
         } else if (p === 'bing') {
           await this.throttle(p);
           results = await searchBing(q, normalized, this.fetcher);

@@ -87,7 +87,7 @@ export interface Settings {
   ui: { theme: 'light' | 'dark'; language: string };
 }
 
-export type SearchProviderId = 'bocha' | 'tavily' | 'serper' | 'bing' | 'duckduckgo';
+export type SearchProviderId = 'bocha' | 'tavily' | 'serper' | 'so360' | 'bing' | 'duckduckgo';
 
 export type ApiKeySource = 'settings' | 'env' | 'none';
 
