@@ -54,7 +54,7 @@ while ($true) {
   $elapsed = [int]((Get-Date) - $start).TotalMinutes
   Write-Output "[$elapsed min] $($pr.status) | $stages | turns=$($u.turns),in=$($u.inputTokens),out=$($u.outputTokens),score=$($pr.review.latestScore)"
   if ($pr.status -in @('completed', 'failed', 'stopped')) { break }
-  if ($elapsed -ge $TimeoutMin) { Write-Output '超时，停止'; Invoke-RestMethod -Uri "$BaseUrl/projects/$projectId/stop" -Method Post | Out-Null; break }
+  if ($elapsed -ge $TimeoutMin) { Write-Output "已超过 $TimeoutMin 分钟，脚本停止轮询（运行不会被中断，可在工作台继续查看或手动停止）"; break }
 }
 Write-Output "== 最终状态 =="
 $pr = Invoke-RestMethod -Uri "$BaseUrl/projects/$projectId" -TimeoutSec 60

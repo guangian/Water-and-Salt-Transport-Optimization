@@ -62,7 +62,7 @@ while true; do
   ELAPSED=$(( ($(date +%s) - START) / 60 ))
   echo "[$ELAPSED min] $STATUS | $STAGES | $USAGE"
   if [[ "$STATUS" == "completed" || "$STATUS" == "failed" || "$STATUS" == "stopped" ]]; then break; fi
-  if (( ELAPSED >= TIMEOUT_MIN )); then echo "超时，停止"; curl -sS -X POST "$BASE/projects/$PID/stop"; break; fi
+  if (( ELAPSED >= TIMEOUT_MIN )); then echo "已超过 ${TIMEOUT_MIN} 分钟，脚本停止轮询（运行不会被中断，可在工作台继续查看或手动停止）"; break; fi
 done
 kill $EV_PID 2>/dev/null || true
 echo "== 最终状态 =="; curl -sS "$BASE/projects/$PID" | python3 -c 'import json,sys; p=json.load(sys.stdin); print(json.dumps({k:p.get(k) for k in ("status","stages","usage","review","artifacts")}, ensure_ascii=False, indent=1))'
