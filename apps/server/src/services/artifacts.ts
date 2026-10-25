@@ -49,9 +49,11 @@ export interface MachineCheckReport {
   summary?: { pass: number; warn: number; fail: number };
 }
 
+export type ReviewRoundData = ReviewSummaryFile & { path: string; judges?: Record<string, unknown>[]; machineReport?: MachineCheckReport };
+
 export interface ReviewData {
-  latest: (ReviewSummaryFile & { path: string }) | null;
-  rounds: (ReviewSummaryFile & { path: string })[];
+  latest: ReviewRoundData | null;
+  rounds: ReviewRoundData[];
   machine: MachineCheckReport | null;
   judges: Record<string, unknown>[];
 }
@@ -65,23 +67,29 @@ export async function readReview(ws: string): Promise<ReviewData> {
     .filter((x): x is { n: string; m: RegExpExecArray } => !!x.m)
     .map((x) => ({ name: x.n, round: Number(x.m[1]) }))
     .sort((a, b) => a.round - b.round);
+  // 每轮目录里的 评审_<judge>.json（三评委原始打分），前端评审页按 round.judges 渲染
+  const readJudges = async (roundDir: string): Promise<Record<string, unknown>[]> => {
+    const out: Record<string, unknown>[] = [];
+    const files = await fsp.readdir(path.join(dir, roundDir)).catch(() => [] as string[]);
+    for (const f of files.sort()) {
+      if (/^评审_.+\.json$/.test(f) && f !== '评审汇总.json') {
+        const j = await readJsonOrNull<Record<string, unknown>>(path.join(dir, roundDir, f));
+        if (j) out.push({ judge: f.slice(3, -5), ...j });
+      }
+    }
+    return out;
+  };
   const rounds: ReviewData['rounds'] = [];
   for (const r of roundDirs) {
     const sum = await readJsonOrNull<ReviewSummaryFile>(path.join(dir, r.name, '评审汇总.json'));
-    if (sum) rounds.push({ ...sum, round: sum.round ?? r.round, path: `07_评审/${r.name}` });
+    if (!sum) continue;
+    const machine = await readJsonOrNull<MachineCheckReport>(path.join(dir, r.name, '机器检查.json'));
+    const judges = await readJudges(r.name);
+    rounds.push({ ...sum, round: sum.round ?? r.round, path: `07_评审/${r.name}`, judges, ...(machine ? { machineReport: machine } : {}) });
   }
   const latestDir = roundDirs.at(-1);
   const machine = latestDir ? await readJsonOrNull<MachineCheckReport>(path.join(dir, latestDir.name, '机器检查.json')) : null;
-  const judges: Record<string, unknown>[] = [];
-  if (latestDir) {
-    const files = await fsp.readdir(path.join(dir, latestDir.name)).catch(() => [] as string[]);
-    for (const f of files) {
-      if (/^评审_.+\.json$/.test(f) && f !== '评审汇总.json') {
-        const j = await readJsonOrNull<Record<string, unknown>>(path.join(dir, latestDir.name, f));
-        if (j) judges.push(j);
-      }
-    }
-  }
+  const judges = latestDir ? await readJudges(latestDir.name) : [];
   return { latest: rounds.at(-1) ?? null, rounds, machine, judges };
 }
 
