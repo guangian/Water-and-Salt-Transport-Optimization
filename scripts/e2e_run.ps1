@@ -34,29 +34,29 @@ $body = @{
 
 Write-Output "== 创建项目 =="
 $p = Invoke-RestMethod -Uri "$BaseUrl/projects" -Method Post -ContentType 'application/json; charset=utf-8' -Body ([System.Text.Encoding]::UTF8.GetBytes($body)) -TimeoutSec 60
-$pid = $p.id
-Write-Output "项目 id: $pid"
+$projectId = $p.id
+Write-Output "项目 id: $projectId"
 
 Write-Output "== 上传资料 =="
 $file = Join-Path $root 'docs\examples\马大姐_企业资料.txt'
-& curl.exe -sS -X POST "$BaseUrl/projects/$pid/files" -F "file=@$file" | Out-String | Write-Output
+& curl.exe -sS -X POST "$BaseUrl/projects/$projectId/files" -F "file=@$file" | Out-String | Write-Output
 
 Write-Output "== 启动运行（smoke=$Smoke）=="
 $runBody = if ($Smoke) { '{"mode":"run","smoke":true}' } else { '{"mode":"run"}' }
-Invoke-RestMethod -Uri "$BaseUrl/projects/$pid/run" -Method Post -ContentType 'application/json' -Body $runBody -TimeoutSec 60 | ConvertTo-Json -Compress | Write-Output
+Invoke-RestMethod -Uri "$BaseUrl/projects/$projectId/run" -Method Post -ContentType 'application/json' -Body $runBody -TimeoutSec 60 | ConvertTo-Json -Compress | Write-Output
 
 $start = Get-Date
 while ($true) {
   Start-Sleep -Seconds 60
-  $pr = Invoke-RestMethod -Uri "$BaseUrl/projects/$pid" -TimeoutSec 60
+  $pr = Invoke-RestMethod -Uri "$BaseUrl/projects/$projectId" -TimeoutSec 60
   $stages = ($pr.stages.PSObject.Properties | ForEach-Object { "$($_.Name):$($_.Value.status.Substring(0, [Math]::Min(4, $_.Value.status.Length)))" }) -join '|'
   $u = $pr.usage
   $elapsed = [int]((Get-Date) - $start).TotalMinutes
   Write-Output "[$elapsed min] $($pr.status) | $stages | turns=$($u.turns),in=$($u.inputTokens),out=$($u.outputTokens),score=$($pr.review.latestScore)"
   if ($pr.status -in @('completed', 'failed', 'stopped')) { break }
-  if ($elapsed -ge $TimeoutMin) { Write-Output '超时，停止'; Invoke-RestMethod -Uri "$BaseUrl/projects/$pid/stop" -Method Post | Out-Null; break }
+  if ($elapsed -ge $TimeoutMin) { Write-Output '超时，停止'; Invoke-RestMethod -Uri "$BaseUrl/projects/$projectId/stop" -Method Post | Out-Null; break }
 }
 Write-Output "== 最终状态 =="
-$pr = Invoke-RestMethod -Uri "$BaseUrl/projects/$pid" -TimeoutSec 60
+$pr = Invoke-RestMethod -Uri "$BaseUrl/projects/$projectId" -TimeoutSec 60
 $pr | Select-Object status, review, artifacts | ConvertTo-Json -Depth 6
-Write-Output "工作区：$($h.workspaceDir)\$pid"
+Write-Output "工作区：$($h.workspaceDir)\$projectId"
