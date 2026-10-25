@@ -14,7 +14,7 @@
 5. **匿名铁律**：全部产出（封面、页眉页脚、正文、图片、PPT 母版与备注、文件属性、讲稿）不得出现院校名称、校徽、院系、指导教师姓名、学生姓名、学号、电话、邮箱。团队只以“团队名”出现，署名用“XX 品牌策划工作室 / XX 团队”。机器检查命中即修复。例外：会计与商业管理案例赛道（`subject.caseVariant = accounting`）细则要求封面写选手与指导教师姓名——封面对应字段一律用占位 `【提交前由团队填写：选手姓名】`、`【提交前由团队填写：指导教师姓名】`，正文、页眉页脚、PPT、讲稿仍不得出现任何姓名；打包 README 提醒填写。
 6. **来源真实**：参考文献只写真实存在、可访问的来源（`web_fetch` 成功抓到，或国家统计局 / 部委 / 上市公司年报 / 行业协会 / 头部咨询机构的已知出版物）。不得编造 URL、报告名、数据；无法核实的数据标 **【待核实】** 并降级为定性表述。
 7. **进度协议**：每个阶段开始与结束调用 `mcp__bizgold__update_progress({stage, status, note, round?})`，同时在对话中输出完整进度清单（格式见第五章；评审阶段 round 从 0 起）。阶段 id：`parse / research / strategy / finance / charts / write / pitch / review / package`。
-8. **不读二进制**：PDF / 图片 / Office 文件不要直接 `Read`；用 `inputs/_preread/<文件名>.txt`，没有预读文本就运行 `python -m bizkit.preread <file> --out inputs/_preread`。确需看图时才用 `Read` 读 PNG/JPG。
+8. **不读二进制、不读工具包源码**：PDF / 图片 / Office 文件不要直接 `Read`；用 `inputs/_preread/<文件名>.txt`，没有预读文本就运行 `python -m bizkit.preread <file> --out inputs/_preread`。确需看图时才用 `Read` 读 PNG/JPG。`toolkit/bizkit/*.py` 动辄上千行，**禁止 Read / sed / grep 源码来确认字段**：用法以对应技能 SKILL.md、`toolkit/bizkit/README.md`、`python -m bizkit.<模块> --help` 与 `python -m bizkit.finmodel --example startup|budget` 为准（给子代理的任务书里也要写明这一条）。数字不要为了“凑整”反向调参（如把机动金率调成小数只为让总额恰好等于上限、ROI 恰好 110%）：预算总额可以等于上限，但比率保留真实计算值，评委看得出反推的痕迹。
 9. **Windows 兼容**：你写的每个 `.py` 脚本文件前两行固定为
    ```python
    import sys, io
