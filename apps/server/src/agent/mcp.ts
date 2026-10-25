@@ -30,18 +30,40 @@ export interface NumbersLedger {
   entries: NumberEntry[];
 }
 
+/** 当前阶段的用时快照（分钟） */
+export interface StageBudget {
+  stage: StageId;
+  elapsedMin: number;
+  budgetMin: number;
+  totalMin: number;
+}
+
 /** 每个项目运行一个绑定该项目上下文的 MCP server 实例 */
 export interface McpContext {
   projectId: string;
   workspaceDir: string;
   search: SearchService;
   python: PythonRunner;
-  updateStage: (stage: StageId, status: StageStatus, note?: string, round?: number) => Promise<void>;
+  /** 返回值是写给主代理看的用时 / 预算提示（可为空串） */
+  updateStage: (stage: StageId, status: StageStatus, note?: string, round?: number) => Promise<string | void>;
+  /** 当前运行中阶段的用时快照；用于在检索 / 抓取回执里提醒超预算 */
+  budget?: () => Promise<StageBudget | null>;
   onFileWritten?: (relPath: string, size: number) => void;
 }
 
 function text(s: string, isError = false) {
   return { content: [{ type: 'text' as const, text: s }], ...(isError ? { isError: true } : {}) };
+}
+
+/** 超过阶段预算时给检索 / 抓取结果附一句提醒；预算内返回 undefined，不增加噪音 */
+export async function overBudgetHint(ctx: McpContext): Promise<string | undefined> {
+  try {
+    const b = await ctx.budget?.();
+    if (!b || b.elapsedMin <= b.budgetMin) return undefined;
+    return `提醒：${b.stage} 阶段已用 ${b.elapsedMin} 分钟，超出预算 ${b.budgetMin} 分钟（全程 ${b.totalMin} 分钟）。请停止新的检索 / 补派，用现有材料收尾并进入下一阶段；缺口登记到“信息空白”。`;
+  } catch {
+    return undefined;
+  }
 }
 
 /** 合并写入数字账本：按 key 去重（后写覆盖），保持原顺序 */
@@ -82,11 +104,12 @@ export function createBizgoldMcpServer(ctx: McpContext) {
     async (args) => {
       try {
         const out = await ctx.search.search(args.query, { count: args.count, site: args.site, freshness: args.freshness });
+        const budgetHint = await overBudgetHint(ctx);
         if (out.results.length === 0) {
           const why = out.errors.length ? out.errors.map((e) => `${e.provider}: ${e.error}`).join('；') : '没有可用的搜索提供商（请在设置中配置搜索 API key）';
-          return text(JSON.stringify({ results: [], provider: null, note: `检索无结果。${why}` }, null, 2));
+          return text(JSON.stringify({ results: [], provider: null, note: `检索无结果。${why}`, ...(budgetHint ? { budgetHint } : {}) }, null, 2));
         }
-        return text(JSON.stringify({ provider: out.provider, cached: out.cached, results: out.results }, null, 2));
+        return text(JSON.stringify({ provider: out.provider, cached: out.cached, ...(budgetHint ? { budgetHint } : {}), results: out.results }, null, 2));
       } catch (e) {
         log.warn('web_search failed', errorMessage(e));
         return text(JSON.stringify({ results: [], note: `检索失败：${errorMessage(e)}` }), true);
@@ -106,7 +129,8 @@ export function createBizgoldMcpServer(ctx: McpContext) {
     async (args) => {
       try {
         const page = await fetchPage(args.url, args.max_chars ?? 12000, { python: ctx.python, workspace: ctx.workspaceDir });
-        return text(JSON.stringify(page, null, 2));
+        const budgetHint = await overBudgetHint(ctx);
+        return text(JSON.stringify(budgetHint ? { budgetHint, ...page } : page, null, 2));
       } catch (e) {
         log.warn('web_fetch failed', errorMessage(e));
         return text(JSON.stringify({ url: args.url, error: `抓取失败：${errorMessage(e)}` }), true);
@@ -126,8 +150,8 @@ export function createBizgoldMcpServer(ctx: McpContext) {
     },
     async (args) => {
       try {
-        await ctx.updateStage(args.stage, args.status as StageStatus, args.note, args.round);
-        return text(`已记录：${args.stage} → ${args.status}${args.round !== undefined ? `（第 ${args.round} 轮）` : ''}`);
+        const budgetNote = await ctx.updateStage(args.stage, args.status as StageStatus, args.note, args.round);
+        return text(`已记录：${args.stage} → ${args.status}${args.round !== undefined ? `（第 ${args.round} 轮）` : ''}${budgetNote ? `。${budgetNote}` : ''}`);
       } catch (e) {
         return text(`进度记录失败：${errorMessage(e)}`, true);
       }

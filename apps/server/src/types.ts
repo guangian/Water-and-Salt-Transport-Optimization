@@ -29,6 +29,19 @@ export const STAGE_NAMES: Record<StageId, string> = {
   package: '打包',
 };
 
+/** 各阶段建议用时上限（分钟）。与 CLAUDE.md 的阶段预算一致；超预算不阻塞，只在工具回执里提醒主代理收尾 */
+export const STAGE_BUDGET_MIN: Record<StageId, number> = {
+  parse: 10,
+  research: 40,
+  strategy: 20,
+  finance: 20,
+  charts: 15,
+  write: 70,
+  pitch: 20,
+  review: 60,
+  package: 10,
+};
+
 export type StageStatus = 'pending' | 'running' | 'done' | 'failed' | 'skipped';
 export type ProjectStatus = 'idle' | 'running' | 'paused' | 'completed' | 'failed' | 'stopped';
 export type RunMode = 'run' | 'resume' | 'modify';

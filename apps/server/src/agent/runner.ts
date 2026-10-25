@@ -2,7 +2,8 @@ import path from 'node:path';
 import { query, type Options } from '@anthropic-ai/claude-agent-sdk';
 import { IS_WINDOWS } from '../config.js';
 import type { AgentEventInput, Project, ProjectStatus, Settings, StageId, StageStatus } from '../types.js';
-import { ApiError, STAGE_IDS, STAGE_NAMES } from '../types.js';
+import { ApiError, STAGE_BUDGET_MIN, STAGE_IDS, STAGE_NAMES } from '../types.js';
+import type { StageBudget } from './mcp.js';
 import { createLogger, errorMessage, redact } from '../util/log.js';
 import type { ProjectStore } from '../services/store.js';
 import type { SettingsStore } from '../services/settings.js';
@@ -207,6 +208,7 @@ export class AgentRunner {
       search,
       python,
       updateStage: (stage, status, note, round) => this.updateStage(run, stage, status, note, round, 'tool'),
+      budget: () => this.budgetSnapshot(run),
       onFileWritten: (rel, size) => void this.enqueue(run, { type: 'file', agent: MAIN_AGENT, data: { path: rel, op: 'write', size } }),
     });
 
@@ -420,13 +422,36 @@ export class AgentRunner {
     await store.appendEvent(projectId, ev, { persist: !isDelta });
   }
 
-  /** update_progress 工具 / 兜底解析共用：写 project.json.stages 并广播 stage 事件 */
-  private async updateStage(run: ActiveRun, stage: StageId, status: StageStatus, note: string | undefined, round: number | undefined, source: 'tool' | 'fallback'): Promise<void> {
+  /** 当前阶段用时 / 预算（分钟），供 MCP 工具在回执里提醒主代理；没有运行中的阶段时返回 null */
+  private async budgetSnapshot(run: ActiveRun): Promise<StageBudget | null> {
+    const p = await this.deps.store.get(run.projectId);
+    const stage = (Object.keys(p.stages) as StageId[]).find((s) => p.stages[s]?.status === 'running') ?? p.currentStage;
+    const st = stage ? p.stages[stage] : undefined;
+    if (!stage || !st) return null;
+    const startedMs = st.startedAt ? Date.parse(st.startedAt) : run.startedAt;
+    const elapsedMin = Math.max(0, Math.round((Date.now() - startedMs) / 60_000));
+    const totalMin = Math.round(((p.usage?.durationMs ?? 0) + (Date.now() - run.startedAt)) / 60_000);
+    return { stage, elapsedMin, budgetMin: STAGE_BUDGET_MIN[stage], totalMin };
+  }
+
+  /** update_progress 工具 / 兜底解析共用：写 project.json.stages 并广播 stage 事件；返回给主代理看的用时/预算提示 */
+  private async updateStage(run: ActiveRun, stage: StageId, status: StageStatus, note: string | undefined, round: number | undefined, source: 'tool' | 'fallback'): Promise<string> {
     const { store } = this.deps;
     const now = new Date().toISOString();
     let reviewLatest: { round: number; score: number; byJudge: Record<string, number>; hardGatePassed: boolean } | null = null;
+    let budgetNote = '';
     await store.mutate(run.projectId, async (p) => {
       const cur = p.stages[stage] ?? { status: 'pending' };
+      const totalMin = Math.round(((p.usage?.durationMs ?? 0) + (Date.now() - run.startedAt)) / 60_000);
+      const budgetMin = STAGE_BUDGET_MIN[stage];
+      if (status === 'running') {
+        budgetNote = `全程已用 ${totalMin} 分钟；本阶段预算 ${budgetMin} 分钟，超预算时按 CLAUDE.md 的降级规则收尾，不要为单项指标反复补派。`;
+      } else if (status === 'done' || status === 'failed') {
+        const startedMs = cur.startedAt ? Date.parse(cur.startedAt) : Date.now();
+        const usedMin = Math.max(0, Math.round((Date.now() - startedMs) / 60_000));
+        const over = usedMin - budgetMin;
+        budgetNote = `本阶段用时 ${usedMin} 分钟（预算 ${budgetMin}${over > 0 ? `，超出 ${over}` : ''}）；全程已用 ${totalMin} 分钟。`;
+      }
       cur.status = status;
       if (status === 'running') {
         cur.startedAt = cur.startedAt ?? now;
@@ -460,5 +485,6 @@ export class AgentRunner {
       const r = reviewLatest as { round: number; score: number; byJudge: Record<string, number>; hardGatePassed: boolean };
       await store.appendEvent(run.projectId, { type: 'review', agent: MAIN_AGENT, data: { round: r.round, score: r.score, byJudge: r.byJudge, hardGatePassed: r.hardGatePassed } });
     }
+    return budgetNote;
   }
 }
