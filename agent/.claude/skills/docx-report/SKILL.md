@@ -68,7 +68,7 @@ export PYTHONPATH=toolkit PYTHONUTF8=1
 "${BIZGOLD_PYTHON:-python}" -m bizkit.docx_render 05_正文/book.json          # 输出 docx（pdf:true 时尝试转 PDF）
 "${BIZGOLD_PYTHON:-python}" -m bizkit.pdf --pages 产出/xxx.pdf              # 真实页数
 ```
-结果 JSON 关注：`pages`（真实）或 `pagesEstimate`（= 字数/650 + 图数×0.45 + 表行数/40）、`figures`、`tables`、`anonymizeHits`、`missingImages`、`warnings`。
+结果 JSON 关注：`pages`（真实）或 `pagesEstimate`（校准模型：字数/600 + 图×0.45 + 表×0.15 + 表行×0.06 + 章×0.5；按真实渲染回归，误差约 ±1 页/章）、`figures`、`tables`、`anonymizeHits`、`missingImages`、`warnings`。
 
 ## 4. 页数控制策略
 

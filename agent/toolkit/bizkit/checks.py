@@ -25,7 +25,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 
 from . import track_defaults as td
-from ._util import force_utf8_stdout, read_json, write_json, write_text
+from ._util import estimate_pages, force_utf8_stdout, read_json, write_json, write_text
 
 PASS, WARN, FAIL, SKIP = "pass", "warn", "fail", "skipped"
 MAX_LOCATIONS = 40
@@ -685,11 +685,12 @@ def _estimate_pages(docs: Sequence[Doc]) -> float:
     words = sum(d.words for d in docs)
     figs = sum(len(d.figures) for d in docs)
     rows = sum(d.table_rows for d in docs)
-    return round(words / 650 + figs * 0.45 + rows / 40, 1)
+    tables = sum(len(d.tables) for d in docs)
+    return estimate_pages(words, figs, tables, rows, chapters=len(docs))
 
 
 def check_page_count(ws: Workspace) -> Dict[str, Any]:
-    """页数：有 产出/*.pdf 读真实页数，否则 字数/650 + 图×0.45 + 表行/40 估算；超 pageLimit 为 fail，偏离 pageTarget±tol 为 warn。"""
+    """页数：有 产出/*.pdf 读真实页数，否则按校准模型估算（600 字/页 + 图 0.45 + 表 0.15 + 表行 0.06 + 章 0.5）；超 pageLimit 为 fail，偏离 pageTarget±tol 为 warn。"""
     limit = int(ws.cfg.get("pageLimit") or 80)
     target = ws.param("pageTarget")
     tol = float(ws.cfg.get("pageTargetTolerance") or 0.1)
@@ -704,7 +705,7 @@ def check_page_count(ws: Workspace) -> Dict[str, Any]:
     if pages is None:
         if not ws.chapters:
             return _skip("page_count", "无 产出/*.pdf 且无章节 Markdown，无法统计", thr)
-        pages, source = _estimate_pages(ws.chapters), "估算（字数/650 + 图×0.45 + 表行/40）"
+        pages, source = _estimate_pages(ws.chapters), "估算（600 字/页 + 图 0.45 + 表 0.15 + 表行 0.06 + 章 0.5）"
     status = PASS
     notes = [f"{_fmt_num(pages)} 页（{source}）"]
     if pages > limit:

@@ -39,7 +39,7 @@ from docx.oxml.ns import qn
 from docx.shared import Cm, Pt, RGBColor
 
 from . import fonts, theme as theme_mod
-from ._util import find_workspace_root, force_utf8_stdout, read_json, read_text
+from ._util import PAGE_CHARS, PAGE_PER_CHAPTER, PAGE_PER_FIGURE, PAGE_PER_TABLE, PAGE_PER_TABLE_ROW, estimate_pages, find_workspace_root, force_utf8_stdout, read_json, read_text
 
 CIRCLED = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳"
 APPENDIX_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -1205,7 +1205,7 @@ class BookRenderer:
     def _count(self, text: str) -> None:
         n = count_words(text)
         self.stats.words += n
-        self.est_pos += n / 650
+        self.est_pos += n / PAGE_CHARS
 
     def _render_heading(self, block: Heading, num: Numbering, page_break: bool, toc_section: str = "body", toc_max_level: int = 3) -> None:
         level = min(block.level, 3)
@@ -1375,7 +1375,7 @@ class BookRenderer:
             try:
                 p.add_run().add_picture(str(img_path), width=Cm(width_cm))
                 self.stats.figures += 1
-                self.est_pos += 0.45
+                self.est_pos += PAGE_PER_FIGURE
             except Exception as e:
                 self.stats.warnings.append(f"图片无法插入 {block.path}: {e}")
                 self._plain_run(p, f"【缺图：{block.path}】", None, True, self.th.negative, None)
@@ -1615,7 +1615,7 @@ def render_book(book_path: Path, make_pdf: Optional[bool] = None) -> Dict[str, A
     result: Dict[str, Any] = {
         "ok": True, "output": str(out_path), "chapters": stats.chapters, "figures": stats.figures, "tables": stats.tables,
         "tableRows": stats.table_rows, "words": stats.words,
-        "pagesEstimate": round(stats.words / 650 + stats.figures * 0.45 + stats.table_rows / 40, 1),
+        "pagesEstimate": estimate_pages(stats.words, stats.figures, stats.tables, stats.table_rows, chapters=stats.chapters),
         "anonymizeHits": stats.anonymize_hits, "missingImages": stats.missing_images, "warnings": list(stats.warnings),
         "tocPageNumbers": "estimated", "pdf": None, "pages": None,
     }

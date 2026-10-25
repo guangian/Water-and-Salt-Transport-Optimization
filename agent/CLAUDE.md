@@ -91,7 +91,7 @@
    4. **关键假设**：每条格式 `假设 → 依据 → 若不成立的影响`，≥ 5 条。
    5. **研究问题清单**：12–20 个具体问题，按研究员 A–D 分组（A 宏观与行业 / B 消费者与渠道 / C 竞品与标杆 / D 对象企业与政策），每个问题注明期望产出（数据表 / 事实 / 引用）。
    6. **异常记录**：留空表（时间 / 环节 / 现象 / 处理 / 对交付的影响）。
-   7. **页数预算表**：读 `tracks/<赛道>/outline.json` 的 `chapters[].pages` 与 `appendices`，按 `pageTarget` 等比缩放：章节合计 = pageTarget × 0.85（取整到 0.5 页），附录合计 = pageTarget × 0.15 且 ≤ spec 附录上限；每章目标页 = 该章区间中值 ÷ 全部中值之和 × 章节合计，不得低于区间下限的 80%。表字段：文件名 / 目标页 / 目标字数（650 字/页，减去图表占页：图 0.45 页、表 40 行 1 页）/ 必配图表数。每个一级标题另起一页，预算已含该空白。该表是 Step 5 任务书与超页裁剪的唯一依据。
+   7. **页数预算表**：读 `tracks/<赛道>/outline.json` 的 `chapters[].pages` 与 `appendices`，按 `pageTarget` 等比缩放：章节合计 = pageTarget × 0.85（取整到 0.5 页），附录合计 = pageTarget × 0.15 且 ≤ spec 附录上限；每章目标页 = 该章区间中值 ÷ 全部中值之和 × 章节合计，不得低于区间下限的 80%。表字段：文件名 / 目标页 / 目标字数 / 必配图表数。目标字数按校准过的页数模型反推：**每章先扣 0.5 页（一级标题另起页的空白），再扣图 0.45 页/张、表 0.15 页/张 + 0.06 页/行，剩余页数 × 600 字**——表格很占页（一张 10 行的三列表约 0.75 页），所以每章表格数要在预算表里写死（一般 ≤ 5 张、≤ 10 行），超出即换成文字或移入附录。`bizkit.checks --chapter` 报的 `pagesEstimate` 用的就是这个模型，写手按它自检，差 ±0.5 页以内才算达标。该表是 Step 5 任务书与超页裁剪的唯一依据。
 
 验收：环境自检文件存在；评分映射 100% 覆盖；研究问题 ≥ 12；页数预算表合计 = pageTarget ± 1 页。
 
@@ -234,7 +234,7 @@
 - 术语首次出现给解释；百分比与百分点不混用；金额统一单位（万元或亿元，全文一致）。
 - 加粗只用于章结论句与关键数字，每页 ≤ 2 处。
 - 图注 / 表注：图题在图下、表题在表上，编号由渲染器生成；图下必写“资料来源：…”（紧跟图表，口径说明用章末注 `[^n]`；元件配方见 docx-report 技能 §1.1）。
-- 每页（约 650 字）≥ 1 图 / 表或 ≥ 2 条带文献号的数字句；执行类表格最低列见主笔定义（动作 8 列 / 预算含单价来源 / KPI 含基线 / 风险含触发指标）。
+- 每页（约 600 字）≥ 1 图 / 表或 ≥ 2 条带文献号的数字句；执行类表格最低列见主笔定义（动作 8 列 / 预算含单价来源 / KPI 含基线 / 风险含触发指标）。
 - 引用：正文用 `[n]`，参考文献按 GB/T 7714-2015 顺序编码由渲染器生成。
 
 ### 2.4 篇幅与密度
@@ -325,7 +325,7 @@
 |---|---|---|---|
 | `bizkit.finmodel` | Step 3 无法生成 xlsx / numbers.json / 财务摘要 | 建模师仍写 `assumptions.json`（契约 §7.4）；然后写 `tmp/finmodel_lite.py`（允许使用 pandas / openpyxl）：按假设逐年计算收入、成本、利润、现金流（startup：三表 + 盈亏平衡月 + 现金最低点 + 出让比例；budget：预算 = Σ 单价 × 数量 + 机动金 + KPI 表），把结果写成 `03_财务/财务模型.xlsx`（每张表第一行写公式说明）、`03_财务/numbers.json`（契约 §7.5 固定 key）、`03_财务/财务摘要.md`（含“检查”表：负现金未融资 / 负库存 / 出让比例误差 三项结果）与 `03_财务/财务图表.charts.json`。脚本运行 ≤ 5 分钟 | “财务模型为脚本生成，Excel 内无活公式；提交前请人工复核” |
 | `bizkit.pptx_render` | Step 6 无 pptx | 仍完整产出 `slides.json`、`讲稿.md`、`答辩题库.md`、`视频分镜.md`；再写 `tmp/pptx_lite.py`（允许 python-pptx）按 slides.json 生成“标题 + 要点 + 图片 + 备注”的 16:9 素版 `产出/路演.pptx`（正文 ≥ 24 pt，≤ 3 色，母版不含任何院校信息，备注写 `note`）；不做复杂版式 | “PPT 为素版，视觉需团队用模板二次排版；内容与数字以 slides.json 为准” |
-| `bizkit.checks` | Step 5 逐章检查、Step 7 机器检查、硬门槛判定全部缺失 | 主代理写一次 `tmp/checks_lite.py`（正则 + 计数，≤ 150 行）并在 Step 5/7 复用，输出与契约 §7.7 同结构的 `机器检查.json|md`（`summary.degraded = true`）。最少覆盖：`anonymity_hits`（用 checks.json 的 anonymityRegex + whitelist 扫 05_正文、06_路演、03_财务、book.json、slides.json）、`forbidden_terms` / `forbidden_terms_adlaw`（forbiddenTerms + advertisingLawTerms − whitelist）、`numeric_density`（每千字数字个数）、`chart_count`（`04_图表/index.json` 条数与正文 `![` 引用数）、`source_count`（参考文献.json 条数、独立域名数）、`struct_coverage`（requiredElements 名称或别名是否出现在一级标题）、`page_limit`（有 pdf 用 `bizkit.pdf --pages`，否则按 650 字/页估算）、`cross_doc_consistency`（numbers.json 每个 value 在正文 / slides.json / 讲稿中出现的写法是否一致：同一 key 的数字出现两种以上数值即 fail）。覆盖不到的检查项写 `"status": "skipped"`，评委对 skipped 项不施加 cap | “机器检查为简化版，`source_pairing / url_alive / font_check` 未执行，提交前请人工核对” |
+| `bizkit.checks` | Step 5 逐章检查、Step 7 机器检查、硬门槛判定全部缺失 | 主代理写一次 `tmp/checks_lite.py`（正则 + 计数，≤ 150 行）并在 Step 5/7 复用，输出与契约 §7.7 同结构的 `机器检查.json|md`（`summary.degraded = true`）。最少覆盖：`anonymity_hits`（用 checks.json 的 anonymityRegex + whitelist 扫 05_正文、06_路演、03_财务、book.json、slides.json）、`forbidden_terms` / `forbidden_terms_adlaw`（forbiddenTerms + advertisingLawTerms − whitelist）、`numeric_density`（每千字数字个数）、`chart_count`（`04_图表/index.json` 条数与正文 `![` 引用数）、`source_count`（参考文献.json 条数、独立域名数）、`struct_coverage`（requiredElements 名称或别名是否出现在一级标题）、`page_limit`（有 pdf 用 `bizkit.pdf --pages`，否则按 600 字/页 + 图 0.45 + 表 0.15 + 表行 0.06 估算）、`cross_doc_consistency`（numbers.json 每个 value 在正文 / slides.json / 讲稿中出现的写法是否一致：同一 key 的数字出现两种以上数值即 fail）。覆盖不到的检查项写 `"status": "skipped"`，评委对 skipped 项不施加 cap | “机器检查为简化版，`source_pairing / url_alive / font_check` 未执行，提交前请人工核对” |
 | `bizkit.search` | 无命令行检索备用 | 只用 MCP `mcp__bizgold__web_search / web_fetch`；MCP 也不可用时研究员只用已知权威出版物并全部标【待核实】，调研总览首行注明“本次调研未联网” | “参考文献未经在线核实” |
 | `bizkit.pdf` 转换失败 | 无 PDF、无精确页数 | 保留 docx；页数用 docx_render 输出的估计值；交付摘要提示“用 Word 另存为 PDF 后核对页数 ≤ 上限” | 同左 |
 

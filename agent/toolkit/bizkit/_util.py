@@ -83,3 +83,17 @@ def find_workspace_root(start: Union[str, Path, None], probe: Union[str, Path, N
 
 def log(msg: str) -> None:
     print(f"[bizkit] {msg}", flush=True)
+
+
+# ---- 页数估算模型（A4 正文 12pt、1.5 倍行距）。用 2026-10 真实渲染（12 章 / 87 页）回归校准：
+# 旧模型「650 字/页 + 图 0.45 + 表行/40」把 87 页估成 58 页，正文写到超上限 20 页才被发现。
+PAGE_CHARS = 600          # 每页正文字数（不含表格、图题、来源行）
+PAGE_PER_FIGURE = 0.45    # 一张图（含图题、来源）
+PAGE_PER_TABLE = 0.15     # 一张表的固定开销（表题、表头、来源行、前后间距）
+PAGE_PER_TABLE_ROW = 0.06 # 一行表格（中文单元格通常换行成 2–3 行）
+PAGE_PER_CHAPTER = 0.5    # 一级标题另起一页平均浪费的半页
+
+
+def estimate_pages(words: int, figures: int = 0, tables: int = 0, table_rows: int = 0, chapters: int = 0) -> float:
+    """按校准模型估算页数；各模块统一用它，别再各自写 650 字/页。"""
+    return round(words / PAGE_CHARS + figures * PAGE_PER_FIGURE + tables * PAGE_PER_TABLE + table_rows * PAGE_PER_TABLE_ROW + chapters * PAGE_PER_CHAPTER, 1)
