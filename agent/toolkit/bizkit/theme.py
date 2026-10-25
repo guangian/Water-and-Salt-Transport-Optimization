@@ -48,6 +48,7 @@ class Typo:
     """字号体系（pt）。Word 用正文小四 = 12pt；PPT 用大字号。"""
     doc_body: float = 12.0        # 小四
     doc_small: float = 10.5       # 五号（图注 / 来源 / 表内）
+    doc_ref: float = 9.0          # 小五（参考文献列表：上百条 GB/T 7714 条目用五号要 9 页，小五紧排约 5 页）
     doc_h1: float = 16.0          # 三号
     doc_h2: float = 14.0          # 四号
     doc_h3: float = 12.0          # 小四加粗

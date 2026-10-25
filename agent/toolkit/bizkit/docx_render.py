@@ -917,11 +917,11 @@ class BookRenderer:
 
         ref = styles.add_style("BizReference", WD_STYLE_TYPE.PARAGRAPH)
         ref.base_style = normal
-        _style_font(ref, self.cjk_body, self.latin, self.th.typo.doc_small, color=self.th.ink)
+        _style_font(ref, self.cjk_body, self.latin, self.th.typo.doc_ref, color=self.th.ink)
         ref.paragraph_format.left_indent = Cm(0.9)
         ref.paragraph_format.first_line_indent = Cm(-0.9)
-        ref.paragraph_format.space_after = Pt(3)
-        ref.paragraph_format.line_spacing = 1.25
+        ref.paragraph_format.space_after = Pt(1.5)
+        ref.paragraph_format.line_spacing = 1.15
         self.s_ref = ref
 
         note = styles.add_style("BizNote", WD_STYLE_TYPE.PARAGRAPH)
@@ -1466,9 +1466,9 @@ class BookRenderer:
             rid = ref.get("id") or k
             text = self._anon(format_reference(ref), f"{rel_path}#id={rid}")
             q = self.doc.add_paragraph(style=self.s_ref)
-            self._plain_run(q, f"[{rid}] ", self.th.typo.doc_small, False, None, None)
-            self._plain_run(q, text, self.th.typo.doc_small, False, None, None)
-            self.est_pos += 2.2 / 40
+            self._plain_run(q, f"[{rid}] ", self.th.typo.doc_ref, False, None, None)
+            self._plain_run(q, text, self.th.typo.doc_ref, False, None, None)
+            self.est_pos += 1.5 / 40
 
     # ---- 整本书 ----
     def build(self) -> None:
