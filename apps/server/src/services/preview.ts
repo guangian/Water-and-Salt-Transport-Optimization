@@ -158,6 +158,13 @@ export async function previewFile(workspace: string, projectId: string, relPath:
   }
   if (IMAGE_EXT.has(ext)) return { kind: 'image', ...common, url };
   if (ext === '.pdf') return { kind: 'pdf', ...common, url };
+  // 产出/路演.pptx 本身是二进制：旁边有工具包写的 路演.pptx.preview.json 就直接按幻灯片预览，没有再退回 binary
+  if (ext === '.pptx') {
+    const sidecar = `${abs}.preview.json`;
+    if (await fsp.stat(sidecar).then((x) => x.isFile()).catch(() => false)) {
+      return previewFile(workspace, projectId, `${rel}.preview.json`).then((r) => ({ ...r, path: rel, size: st.size, url }));
+    }
+  }
   if (base === 'slides.json' || base.endsWith('.preview.json')) {
     const text = await fsp.readFile(abs, 'utf8');
     try {
