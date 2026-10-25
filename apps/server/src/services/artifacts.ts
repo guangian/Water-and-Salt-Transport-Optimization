@@ -146,7 +146,7 @@ export async function readNumbers(ws: string): Promise<NumbersReport> {
   const review = await readReview(ws).catch(() => null);
   const cross = (review?.machine as { crossDoc?: { consistent?: boolean; mismatches?: unknown[] } } | null)?.crossDoc;
   const mismatchKeys = new Set(((cross?.mismatches ?? []) as { key?: string }[]).map((m) => m.key));
-  const flat = entries.map((e) => ({ ...e, consistency: mismatchKeys.has(e.key) ? 'mismatch' : cross ? 'ok' : 'unchecked' }));
+  const flat = entries.map((e) => ({ ...e, consistency: (mismatchKeys.has(e.key) ? 'mismatch' : cross ? 'ok' : 'unchecked') as 'ok' | 'mismatch' | 'unchecked' }));
   return {
     ledger,
     generatedAt: ledger?.generatedAt ?? '',

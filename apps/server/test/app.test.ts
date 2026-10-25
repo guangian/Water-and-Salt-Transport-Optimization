@@ -151,7 +151,7 @@ describe('HTTP API', () => {
     const review = await app.inject({ method: 'GET', url: `/api/projects/${projectId}/review` });
     expect(review.json()).toEqual({ latest: null, rounds: [], machine: null, judges: [] });
     const numbers = await app.inject({ method: 'GET', url: `/api/projects/${projectId}/numbers` });
-    expect(numbers.json()).toEqual({ ledger: null, consistency: { checked: 0, consistent: true, issues: [] } });
+    expect(numbers.json()).toEqual({ ledger: null, generatedAt: '', unit: '万元', entries: [], consistency: { checked: 0, consistent: true, issues: [], mismatches: [] } });
   });
 
   it('run without an API key is rejected with 400; chat requires a message', async () => {
