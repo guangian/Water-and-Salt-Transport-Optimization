@@ -331,6 +331,14 @@
 ```
 检查项 id 与阈值见 `02_国金级材料标准.md §6.7`，赛道阈值在 `tracks/<id>/checks.json`。
 
+2026.10 新增三项文风检查（只追加到 `checks[]`，不进 `hardGates`；单章快检 `--chapter` 也输出）：
+
+| id | 定义 | value / threshold | 状态规则 | locations 条目 |
+|---|---|---|---|---|
+| `cliche_terms` | 套话 / 万能模板句密度：正文（不含附录）+ 讲稿，词表 `checks.json.clicheTerms`（字面词、含 `…` 的模板句如「随着…发展」、`{term, regex:true}`），`clicheWhitelist` 先遮蔽 | 每万字命中次数 / `{pass: 3, fail: 9, per: "万字"}`（`clichePer10k` 可改） | ≤ 3 pass；≥ 9（3 倍）fail；其间 warn | `{file, line, term, text}`；另有 `hits`、`words` |
+| `synthetic_research_markers` | 示例数据标注（章节级）：`params.researchMode == "synthetic"` 或账本含 `synthetic:true` 时，正文 / 讲稿 / 题库中引用一手调研结论的句子（调研显示 / 受访者… / 问卷·访谈·样本 + 计数或百分比 / 账本示例数值带同类单位）所在**文件**、PPT **页**内必须出现「示例数据」标记 | 缺标记的文件 / 页数 / `{pass: 0}` | 0 pass；≥ 1 fail；非 synthetic 模式 skipped | 触发句 `{file, line, term, text}`；另有 `files`、`missingFiles[]`。与既有 `synthetic_marker_coverage`（账本示例数值 ±3 行内须有标记）互补 |
+| `unsourced_numbers` | 无源关键数字：正文散文句中带 亿元 / 万元 / 万 / 亿 / 元 / % / 个百分点 / 倍 / 万人 等单位的数字，同句或同段须有 `[n]`、`[^n]`、「示例数据」、来源 / 据《 / 据…局·协会·报告、测算 / 模型 / 假设 / 估算、命题、一手调研口径（问卷 / 访谈 / 受访者）、「见第 N 章 / 见表」指向，或数值能在 `numbers.json` 找到（允许千分位 / 小数位 / 万↔亿↔元 / 20%↔0.2）；读图 / 读表句与紧跟图表之后的段落由图表来源覆盖；年份、章节号、图表号、页码、文献号本身、表格单元格、区间后段（25—35）不计 | 无源 / 关键数字总数 / `{pass: 0.10, warn: 0.25}` | ≤ 10% pass；≤ 25% warn；否则 fail | 样例 ≤ 20 条 `{file, line, term, text(句子前 60 字)}`；另有 `unsourced`、`total` |
+
 ### 7.8 赛道文件
 
 - `rubric.json`：`{ "track", "dimensions": [ { "id", "name", "weight", "official": "品牌现状分析准确性 10", "anchors": { "1": "…", "3": "…", "5": "…" }, "bandAnchors"?: { "60": "…", "75": "…", "85": "…", "92": "…" }, "evidenceRequired"?: ["…"], "machineCapRules": [ { "check": "has_primary_research", "when": "fail", "cap": 2 } ] } ], "targetScore": 85, "minDimension": 3, "bands"?: {…}, "scoringRules"?: [...], "judgeFocus"?: {…} }`（带 ? 的为 2026.2 起的可选键，只供评委阅读；`checks.py` 只读 `hardGates`）

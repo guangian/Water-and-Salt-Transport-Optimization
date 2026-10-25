@@ -417,6 +417,8 @@ class Workspace:
         else:
             ci = _read_json_safe(self.root / "04_图表" / "index.json")
             self.chart_index = ci if isinstance(ci, dict) else {}
+            n = _read_json_safe(self.root / "03_财务" / "numbers.json")  # 单章快检的无源数字 / 示例数据检查也要查账本
+            self.numbers = n if isinstance(n, dict) else None
 
     # ---- 基础访问
     def _rel(self, p: Path) -> str:
@@ -1558,6 +1560,285 @@ def check_synthetic_markers(ws: Workspace) -> Dict[str, Any]:
     return _mk("synthetic_marker_coverage", value, thr, _status_min(value, target, target * 0.8), detail, missing, occurrences=total)
 
 
+# ---- 文风三项：套话密度 / 一手调研段落的示例数据标记 / 无源关键数字
+# 套话表（CLAUDE.md §2.2「套话」+ 02_国金级材料标准.md）；赛道 checks.json 的 clicheTerms 覆盖此表。
+# 词条写法：字面词；含 … 的模板句（… 处允许 ≤ 15 字、不跨标点）；{"term": 正则, "regex": true}。
+_CLICHE_TERMS_DEFAULT: List[str] = [
+    "随着…发展", "在…背景下", "近年来", "综上所述", "不难看出", "不难发现", "值得一提的是", "值得注意的是", "可以说", "总的来说",
+    "众所周知", "前景广阔", "具有重要意义", "空前的机遇", "弥补市场空白", "如图所示", "等等", "极大地",
+    "赋能", "多维度赋能", "助力…高质量发展", "助力", "抓手", "闭环", "生态闭环", "一站式", "全方位多层次", "全方位", "多维度",
+    "引领行业", "引领", "打造标杆", "打造", "深度融合", "强强联合", "高度契合",
+]
+# 专业搭配里的“套话字面”不计（赛道 clicheWhitelist 在此基础上追加）
+_CLICHE_EXCEPTIONS: List[str] = ["可以说明", "可以说服", "等等看"]
+_CLICHE_GAP = r"[^，。；！？、,.;!?\n]{0,15}"
+
+
+def _cliche_patterns(cfg: Dict[str, Any]) -> List[Tuple[str, "re.Pattern[str]", bool]]:
+    terms = cfg.get("clicheTerms")
+    if not isinstance(terms, list) or not terms:
+        terms = list(_CLICHE_TERMS_DEFAULT)
+    pats: List[Tuple[str, "re.Pattern[str]", bool]] = []
+    for t in terms:
+        if isinstance(t, dict):
+            term, is_rx = str(t.get("term") or "").strip(), bool(t.get("regex"))
+        else:
+            term, is_rx = str(t).strip(), False
+        if not term:
+            continue
+        try:
+            if is_rx:
+                rx = re.compile(term)
+            elif "…" in term or "..." in term:
+                parts = [p for p in re.split(r"…|\.\.\.", term) if p]
+                rx = re.compile(_CLICHE_GAP.join(re.escape(p) for p in parts))
+            else:
+                rx = re.compile(re.escape(term))
+        except re.error:
+            continue
+        pats.append((term, rx, False))
+    return sorted(pats, key=lambda p: -len(p[0]))  # 长词优先：「生态闭环」先于「闭环」，同一处只记更具体的那条
+
+
+def check_cliche_terms(ws: Workspace) -> Dict[str, Any]:
+    """套话 / 万能模板句密度：正文（不含附录）+ 讲稿，每万字 ≤ clichePer10k（默认 3）为 pass，≥ 3 倍为 fail，其间 warn。"""
+    per10k = float(ws.cfg.get("clichePer10k") or 3)
+    thr = {"pass": per10k, "fail": round(per10k * 3, 2), "per": "万字"}
+    docs = list(ws.body_docs or ws.chapters)
+    if ws.script is not None:
+        docs.append(ws.script)
+    if not docs:
+        return _skip("cliche_terms", "无章节 Markdown 与讲稿", thr)
+    whitelist = _CLICHE_EXCEPTIONS + [str(x) for x in (ws.cfg.get("clicheWhitelist") or []) if x]
+    pats = _cliche_patterns(ws.cfg)
+    hits = _scan(ws.line_units(docs), pats, whitelist)
+    words = sum(_count_words(_script_text(d)) if d is ws.script else d.words for d in docs)
+    value = round(len(hits) / words * 10000, 2) if words else 0.0
+    status = PASS if value <= per10k else FAIL if value >= per10k * 3 else WARN
+    detail = f"{len(hits)} 处套话 / {words} 字 = {value}/万字（上限 {_fmt_num(per10k)}，≥ {_fmt_num(per10k * 3)} 为 fail）"
+    if hits:
+        freq: Dict[str, int] = {}
+        for h in hits:  # 模板句按词条名聚合（「随着…发展」而不是每个具体句子）
+            label = next((lbl for lbl, rx, _ in pats if rx.fullmatch(h["term"])), h["term"])
+            freq[label] = freq.get(label, 0) + 1
+        top = sorted(freq.items(), key=lambda kv: (-kv[1], kv[0]))[:6]
+        detail += "；高频：" + "、".join(f"{t}×{n}" for t, n in top)
+        detail += "；如 " + "；".join(f"{h['file']}:{h['line']}「{h['term']}」" for h in hits[:3])
+    return _mk("cliche_terms", value, thr, status, detail, hits, hits=len(hits), words=words)
+
+
+# 一手调研“结论”句：明确的调研结果动词，或 调研关键词 + 计数 / 百分比 数字 同句出现（方法描述句“发放问卷并访谈”不算）
+_RESEARCH_KW_RE = re.compile(r"问卷|访谈|深访|焦点小组|受访|样本|实地(?:走访|观察|调研)|(?<![A-Za-z])[nN]\s*[=＝]\s*\d")
+_RESEARCH_FINDING_RE = re.compile(
+    r"调研(?:显示|发现|结果|表明|数据显示|中)|调查(?:显示|发现|结果|表明)|问卷(?:显示|结果|数据|统计)|访谈(?:显示|发现|结果|中)|受访者?(?:表示|认为|提到|反馈|选择|愿意|中)|样本(?:显示|中)"
+)
+_RESEARCH_COUNT_RE = re.compile(r"\d[\d,，.]*\s*(?:%|％|个百分点|份|人次|人|名|位|倍)|(?<![A-Za-z])[nN]\s*[=＝]\s*\d")
+
+
+def _is_synthetic_mode(ws: Workspace) -> bool:
+    if str(ws.param("researchMode") or "").strip().lower() == "synthetic":
+        return True
+    return any(e.get("synthetic") for e in ws.entries)
+
+
+_NOT_ORDINAL_AFTER = re.compile(r"^(?!\s*(?:类|章|节|页|条|项|款|期|轮|批|步|天|日|月|年|号|层|级|段|版|届|行|列))")
+
+
+def _synth_unit_rx(unit: str) -> "re.Pattern[str]":
+    """示例数值后面必须紧跟同类单位，避免 32（%）命中「第 32 类」、412（份）命中「412 号」。"""
+    if unit in _PCT_UNITS:
+        return re.compile(r"^\s*(?:%|％|个百分点|pp)")
+    if unit in _MONEY_UNITS:
+        return re.compile(r"^\s*(?:万元|亿元|元|万|亿)")
+    if unit:
+        return re.compile(r"^\s*" + re.escape(unit))
+    return _NOT_ORDINAL_AFTER
+
+
+def _synth_value_in(sent: str, pats: Sequence["re.Pattern[str]"], unit_rx: "re.Pattern[str]") -> bool:
+    for p in pats:
+        for m in p.finditer(sent):
+            if _NOT_QUANTITY_BEFORE.search(sent[: m.start()]):
+                continue
+            if m.group(0).rstrip().endswith(("%", "％")) or unit_rx.match(sent[m.end():]):
+                return True
+    return False
+
+
+def _research_triggers(text: str, synth_pats: Sequence[Tuple[str, List["re.Pattern[str]"], "re.Pattern[str]"]]) -> List[Tuple[str, str]]:
+    """一段文本里引用一手调研结论的句子：返回 [(触发词, 句子)]。"""
+    out: List[Tuple[str, str]] = []
+    for sent in _split_sentences(text):
+        m = _RESEARCH_FINDING_RE.search(sent)
+        if m is None:
+            k = _RESEARCH_KW_RE.search(sent)
+            m = k if (k is not None and _RESEARCH_COUNT_RE.search(sent)) else None
+        if m is not None:
+            out.append((m.group(0), sent))
+            continue
+        for key, pats, unit_rx in synth_pats:
+            if _synth_value_in(sent, pats, unit_rx):
+                out.append((f"账本 {key}", sent))
+                break
+    return out
+
+
+def check_synthetic_research_markers(ws: Workspace) -> Dict[str, Any]:
+    """示例数据标注（章节级）：synthetic 模式下，正文 / 讲稿 / 题库中引用一手调研结论的段落所在文件、PPT 页内必须出现「示例数据」标记；缺标记 fail。"""
+    thr = {"pass": 0, "when": "params.researchMode == synthetic 或 numbers.json 含 synthetic:true", "marker": "【示例数据…】/（示例数据…）"}
+    if not _is_synthetic_mode(ws):
+        return _skip("synthetic_research_markers", "非 synthetic 模式（researchMode ≠ synthetic 且账本无 synthetic 条目）", thr)
+    docs = list(ws.body_docs or ws.chapters) + [d for d in (ws.script, ws.qa) if d is not None]
+    pages = ws.slide_pages() if not ws.chapter_mode else []
+    if not docs and not pages:
+        return _skip("synthetic_research_markers", "没有可扫描的文本（正文 / 讲稿 / 题库 / PPT 均缺）", thr)
+    synth_pats = [(str(e["key"]), _value_patterns(float(e["value"]), str(e.get("unit") or "")), _synth_unit_rx(str(e.get("unit") or "")))
+                  for e in ws.entries if e.get("synthetic") and isinstance(e.get("value"), (int, float)) and not isinstance(e.get("value"), bool)]
+    synth_pats = [(k, p, u) for k, p, u in synth_pats if p]
+    units: List[Tuple[str, bool, List[Dict[str, Any]]]] = []
+    for d in docs:
+        trig: List[Dict[str, Any]] = []
+        for i, line in enumerate(d.lines):
+            if not line.strip() or _TBL_SEP_RE.match(line):
+                continue
+            for term, sent in _research_triggers(line, synth_pats):
+                trig.append({"file": d.rel, "line": i + 1, "term": term, "text": sent[:120]})
+        if trig:
+            units.append((d.rel, bool(_MARKER_RE.search(d.text)), trig))
+    for p in pages:
+        blob = "\n".join([p["title"], p["note"]] + p["texts"])
+        trig = [{"file": "06_路演/slides.json", "line": p["index"], "term": term, "text": sent[:120]} for term, sent in _research_triggers(blob, synth_pats)]
+        if trig:
+            units.append((f"06_路演/slides.json#{p['index']}", bool(_MARKER_RE.search(blob)), trig))
+    if not units:
+        return _mk("synthetic_research_markers", 0, thr, PASS, "未发现引用一手调研结论的段落，无需标记", [], files=0)
+    missing = [u for u in units if not u[1]]
+    locs = [t for u in missing for t in u[2]]
+    detail = f"{len(units) - len(missing)}/{len(units)} 个含一手调研结论的文件 / 页带「示例数据」标记"
+    if missing:
+        detail += "；缺标记：" + "；".join(f"{u[0]}（第 {'、'.join(str(t['line']) for t in u[2][:4])}{'…' if len(u[2]) > 4 else ''} 行）" for u in missing[:5])
+    return _mk("synthetic_research_markers", len(missing), thr, FAIL if missing else PASS, detail, locs, files=len(units), missingFiles=[u[0] for u in missing])
+
+
+# 无源关键数字：带这些单位的数字才算“关键数字”（市场规模 / 增长率 / 占比 / 渗透率 / 价格 / 倍数 / 万人级规模）
+_KEY_UNITS = {"亿元", "亿人次", "亿人", "亿次", "亿", "万元", "万人次", "万人", "万次", "万份", "万件", "万单", "万粉", "万", "元", "％", "%", "个百分点", "pp", "倍"}
+_SOURCED_RE = re.compile(
+    r"来源|据《|引自|援引|示例数据|测算|模型|假设|估算|推算|命题|任务书|\[\d+(?:\s*[-–—,，]\s*\d+)*\]|\[\^[^\]]*\]"
+    r"|据[^，。；\n]{0,12}?(?:局|部|委|署|协会|研究院|咨询|报告|年报|白皮书|公报|数据库|公告|年鉴)"
+    r"|一手|问卷|访谈|调研|调查|样本|受访"  # 一手调研口径：数字可追溯到问卷 / 访谈（是否带「示例数据」标记由 synthetic_research_markers 管）
+    r"|(?:详|参)?见(?:第\s*\d+\s*章|[图表]|附录|下表|上表|下图|上图)|第\s*\d+\s*章(?:逐项|明细|对应|详述|展开)|[（(]\s*[图表]\s*[\d一二三四五六七八九十]"  # 指向本书图表 / 预算明细
+)
+# 读图 / 读表句：数字复述自紧邻的图表，来源由图表（source_pairing）覆盖
+_READ_FIG_RE = re.compile(r"^\s*(?:\*\*)?(?:读图|读表|图中|表中|如图|如表|上图|上表|由图|由表|从图|从表)")
+_MASK_RES = (_CITE_RE, _FOOTNOTE_RE, _SRC_INLINE_RE, _IMG_RE, _TIME_MARK_RE, re.compile(r"<!--.*?-->"))
+_UNSOURCED_SAMPLES = 20
+
+
+def _mask_keep_len(text: str) -> str:
+    """把文献号 / 脚注 / 行内来源 / 图片 / 时间标记替换为等长空格（保留偏移，便于回原文取句）。"""
+    for rx in _MASK_RES:
+        text = rx.sub(lambda m: " " * len(m.group(0)), text)
+    return text
+
+
+def _ledger_values(ws: Workspace) -> List[Tuple[float, str]]:
+    out: List[Tuple[float, str]] = []
+    for e in ws.entries:
+        v = e.get("value")
+        if isinstance(v, (int, float)) and not isinstance(v, bool) and not str(e.get("key") or "").startswith("check_"):
+            out.append((abs(float(v)), str(e.get("unit") or "")))
+    return out
+
+
+def _close(a: float, b: float) -> bool:
+    return abs(a - b) <= max(abs(b) * 0.005, 0.05)
+
+
+def _in_ledger(v: float, unit: str, ledger: Sequence[Tuple[float, str]]) -> bool:
+    """文中数字能在账本找到：同一写法（允许千分位 / 小数位差异），或 万↔亿↔元 换算、20%↔0.2 换算后相等。"""
+    av = abs(v)
+    for ev, eu in ledger:
+        if _close(av, ev):
+            return True
+        if unit in _MONEY_UNITS and eu in _MONEY_UNITS and _close(av * _MONEY_UNITS[unit], ev * _MONEY_UNITS[eu]):
+            return True
+        if unit in _PCT_UNITS and eu in _PCT_UNITS and (_close(av / 100, ev) or _close(av, ev * 100)):
+            return True
+    return False
+
+
+def _prose_paragraphs(d: Doc) -> List[List[int]]:
+    """正文段落 = 连续的散文行（跳过空行、标题、表格、题注、来源行、纯图片行）。"""
+    paras: List[List[int]] = []
+    cur: List[int] = []
+    for i, line in enumerate(d.lines):
+        s = line.strip()
+        prose = bool(s) and not (_HEADING_RE.match(line) or s.startswith("|") or _TBL_SEP_RE.match(line) or _TBL_TITLE_RE.match(line)
+                                 or _SRC_LINE_RE.match(line) or _IMG_RE.sub("", s).strip() == "" or _SRC_INLINE_RE.sub("", s).strip() == "")
+        if prose:
+            cur.append(i)
+        elif cur:
+            paras.append(cur)
+            cur = []
+    if cur:
+        paras.append(cur)
+    return paras
+
+
+def _para_sourced(d: Doc, para: Sequence[int]) -> bool:
+    """段内任一行带来源标记；或紧随段落的下一非空行是来源行；或段落是读图 / 读表句、紧跟在图片 / 表格 / 来源行之后。"""
+    if any(_SOURCED_RE.search(d.lines[i]) for i in para) or _READ_FIG_RE.match(d.lines[para[0]]):
+        return True
+    j = para[-1] + 1
+    while j < len(d.lines) and not d.lines[j].strip():
+        j += 1
+    if j < len(d.lines) and (_SRC_LINE_RE.match(d.lines[j]) or _SRC_INLINE_RE.search(d.lines[j])):
+        return True
+    k = para[0] - 1
+    while k >= 0 and not d.lines[k].strip():
+        k -= 1
+    if k < 0:
+        return False
+    prev = d.lines[k]
+    return bool(_SRC_LINE_RE.match(prev) or _SRC_INLINE_RE.search(prev) or _IMG_RE.search(prev) or prev.strip().startswith("|"))
+
+
+def check_unsourced_numbers(ws: Workspace) -> Dict[str, Any]:
+    """无源关键数字：正文散文句中带 亿元 / 万元 / % / 倍 / 万人 等单位的数字，同句或同段须有 [n] / 示例数据 / 来源 / 测算 / 模型 / 假设，或能在 numbers.json 找到；无源占比 ≤ 10% pass、≤ 25% warn。"""
+    thr = {"pass": 0.10, "warn": 0.25, "units": "亿元 / 万元 / % / 倍 / 万人 …"}
+    docs = ws.body_docs or ws.chapters
+    if not docs:
+        return _skip("unsourced_numbers", "无章节 Markdown", thr)
+    ledger = _ledger_values(ws)
+    total = 0
+    unsourced: List[Dict[str, Any]] = []
+    for d in docs:
+        for para in _prose_paragraphs(d):
+            p_src = _para_sourced(d, para)
+            for i in para:
+                line = d.lines[i]
+                masked = _mask_keep_len(line)
+                for m in _NUM_RE.finditer(masked):
+                    unit = m.group(2) or ""
+                    if unit not in _KEY_UNITS or _NOT_QUANTITY_BEFORE.search(masked[: m.start()]):  # 序数 / 区间后段 / 时刻不计
+                        continue
+                    v = _parse_num(m.group(1))
+                    if v is None:
+                        continue
+                    total += 1
+                    sent = _sentence_at(line, m.start(), m.end())
+                    if p_src or _SOURCED_RE.search(sent) or _in_ledger(v, unit, ledger):
+                        continue
+                    unsourced.append({"file": d.rel, "line": i + 1, "term": m.group(0).strip(), "text": sent[:60]})
+    if total == 0:
+        return _mk("unsourced_numbers", 0.0, thr, PASS, "正文散文句中未发现带关键单位的数字", [], unsourced=0, total=0)
+    value = _ratio(len(unsourced), total)
+    detail = f"{len(unsourced)}/{total} 个关键数字同句 / 同段无来源标记且不在账本（{value:.0%}，上限 10%）"
+    if unsourced:
+        detail += "；如 " + "；".join(f"{u['file']}:{u['line']}「{u['term']}」" for u in unsourced[:3])
+    return _mk("unsourced_numbers", value, thr, _status_max(value, 0.10, 0.25), detail, unsourced[:_UNSOURCED_SAMPLES], unsourced=len(unsourced), total=total)
+
+
 # ---- 关键词 / 表格启发式（创业 / 案例 / 数字营销 / 会奖 专项）
 def _kw_check(cid: str, ws: Workspace, pattern: str, pass_min: int = 1, warn_min: int = 0, label: str = "") -> Dict[str, Any]:
     thr = {"pass": pass_min, "warn": warn_min}
@@ -2252,6 +2533,7 @@ CORE_CHECKS: List[Tuple[str, Callable[[Workspace], Any]]] = [
     ("anonymity_hits", check_anonymity), ("numeric_density", check_numeric_density), ("sources", check_sources),
     ("source_pairing", check_source_pairing), ("chart_count", check_chart_count), ("forbidden_terms", check_forbidden_terms),
     ("forbidden_terms_adlaw", check_adlaw), ("weak_terms", check_weak_terms), ("synthetic_marker_coverage", check_synthetic_markers),
+    ("cliche_terms", check_cliche_terms), ("synthetic_research_markers", check_synthetic_research_markers), ("unsourced_numbers", check_unsourced_numbers),
     ("slide_metrics", check_slide_metrics), ("deck_font_min", check_deck_font_min), ("script_timing", check_script_timing),
     ("sentence_length", check_sentence_length), ("qa_bank", check_qa_bank),
 ]
@@ -2298,7 +2580,8 @@ EVIDENCE_CHECKS: List[Tuple[str, str, CheckFn]] = [
     ("analysis_framework_diagram", "analysis_framework_diagram", check_analysis_framework),
     ("novel_method", "novel_method", check_novel_method),
 ]
-CHAPTER_CHECK_IDS = ["numeric_density", "source_pairing", "forbidden_terms", "forbidden_terms_adlaw", "anonymity_hits", "weak_terms"]
+CHAPTER_CHECK_IDS = ["numeric_density", "source_pairing", "forbidden_terms", "forbidden_terms_adlaw", "anonymity_hits", "weak_terms",
+                     "cliche_terms", "unsourced_numbers", "synthetic_research_markers"]
 DEFAULT_HARD_GATES = ["anonymity_hits", "page_limit", "cover_fields", "cross_doc_consistency", "forbidden_terms_adlaw"]
 
 
@@ -2353,7 +2636,7 @@ def _resolve_variant(variant: Optional[str], root: Path) -> Optional[str]:
 
 
 def run_chapter(workspace: Path, track: Optional[str], chapter: str, variant: Optional[str] = None) -> Dict[str, Any]:
-    """单章快检：只做 数值密度 / 来源配对 / 禁语 / 广告法 / 匿名 / 弱词，不写文件。"""
+    """单章快检：只做 数值密度 / 来源配对 / 禁语 / 广告法 / 匿名 / 弱词 / 套话 / 无源数字 / 示例数据标记，不写文件。"""
     root = Path(workspace).resolve()
     track = _resolve_track(track, root)
     cfg = _load_cfg(track, root, _resolve_variant(variant, root))
@@ -2361,7 +2644,7 @@ def run_chapter(workspace: Path, track: Optional[str], chapter: str, variant: Op
     state: Dict[str, Any] = {"degraded": False, "errors": []}
     checks: List[Dict[str, Any]] = []
     warning: Optional[str] = None
-    if not ws.chapters:  # 读不到章节：六项全部 skipped，而不是报错退出
+    if not ws.chapters:  # 读不到章节：各项全部 skipped，而不是报错退出
         warning = f"读不到章节文件 {chapter}"
         checks = [_skip(cid, warning) for cid in CHAPTER_CHECK_IDS]
     else:

@@ -339,3 +339,178 @@ def test_adlaw_patterns_skip_ordinals() -> None:
     assert "第一" not in [h["term"] for h in hits if h["line"] == 1]
     assert {"最佳", "行业第一"} <= set(terms) or {"最佳", "第一"} <= set(terms)
     assert sum(1 for h in hits if h["line"] == 3) == 1  # 只有「100% 天然」算宣传搭配
+
+
+# --------------------------------------------------------------------------- 7. 文风三项：套话 / 示例数据标注（章节级）/ 无源关键数字
+def _mini_ws(root: Path, chapter: str, project: Any = None, numbers: Any = None, script: Any = None, qa: Any = None) -> Path:
+    """只有一章正文（可选 project.json / numbers.json / 讲稿 / 题库）的最小工作区。"""
+    (root / "05_正文").mkdir(parents=True, exist_ok=True)
+    (root / "05_正文" / "01_市场分析.md").write_text(chapter, encoding="utf-8")
+    if project is not None:
+        (root / "project.json").write_text(json.dumps(project, ensure_ascii=False), encoding="utf-8")
+    if numbers is not None:
+        (root / "03_财务").mkdir(exist_ok=True)
+        (root / "03_财务" / "numbers.json").write_text(json.dumps(numbers, ensure_ascii=False), encoding="utf-8")
+    if script is not None or qa is not None:
+        (root / "06_路演").mkdir(exist_ok=True)
+        if script is not None:
+            (root / "06_路演" / "讲稿.md").write_text(script, encoding="utf-8")
+        if qa is not None:
+            (root / "06_路演" / "答辩题库.md").write_text(qa, encoding="utf-8")
+    return root
+
+
+_CLICHE_CHAPTER = (
+    "# 2 市场分析\n\n"
+    "随着电解质饮料市场的不断发展，功能性零食迎来空前的机遇。赋能渠道是关键抓手，形成生态闭环，引领行业。\n\n"
+    "本方案可以说明问题所在；综上所述，强强联合、全方位多层次打造标杆，助力县域经济高质量发展。\n\n"
+    "市场规模 120 亿元[1]，不难发现，一站式服务前景广阔。\n"
+)
+
+
+def test_cliche_terms_hits_and_wildcards(tmp_path: Path) -> None:
+    r = checks.run(_mini_ws(tmp_path, _CLICHE_CHAPTER, project={"track": "brand"}), track="brand", write=False)
+    c = _by_id(r)["cliche_terms"]
+    assert c["status"] == FAIL and c["value"] >= 9 and c["hits"] == len(c["locations"]) >= 10
+    terms = [h["term"] for h in c["locations"]]
+    assert "随着电解质饮料市场的不断发展" in terms  # 「随着…发展」模板句（… 为通配）
+    assert "助力县域经济高质量发展" in terms
+    assert {"赋能", "抓手", "生态闭环", "引领行业", "综上所述", "强强联合", "打造标杆", "不难发现", "一站式", "前景广阔"} <= set(terms)
+    assert "可以说" not in terms  # 「可以说明」在 clicheWhitelist 里
+    assert all(h["file"] == "05_正文/01_市场分析.md" and h["line"] in (3, 5, 7) and h["text"] for h in c["locations"])
+    assert "高频" in c["detail"] and "/万字" in c["detail"]
+    # 不进硬门槛
+    assert "cliche_terms" not in {g["id"] for g in r["hardGates"]}
+
+
+def test_cliche_terms_clean_and_thresholds(demo3: Dict[str, Any], tmp_path: Path) -> None:
+    c = demo3["checks"]["cliche_terms"]
+    assert c["status"] == PASS and c["value"] == 0.0 and c["hits"] == 0 and c["words"] > 3000  # 正文 + 讲稿一起计字数
+    # 每万字 ≤ 3 pass；(3, 9) warn；≥ 9 fail —— 用 1 处套话 + 不同字数验证三档
+    filler = "本方案第一年目标销售额 4,860 万元，按客单价 16 元与复购模型测算。" * 60  # ≈ 1 800 字
+    one_hit = "# 1 概要\n\n" + filler + "\n\n我们要赋能渠道。\n"
+    r = checks.run(_mini_ws(tmp_path / "w", one_hit, project={"track": "brand"}), track="brand", write=False)
+    c1 = _by_id(r)["cliche_terms"]
+    assert c1["hits"] == 1 and c1["status"] == WARN and 3 < c1["value"] < 9
+    r = checks.run(_mini_ws(tmp_path / "p", "# 1 概要\n\n" + filler * 3 + "\n\n我们要赋能渠道。\n", project={"track": "brand"}), track="brand", write=False)
+    assert _by_id(r)["cliche_terms"]["status"] == PASS
+    # 赛道 clicheWhitelist 可放过专业搭配；clicheTerms 可整体替换
+    cfg = td.load_track_config("brand", None)
+    assert "赋能" in cfg["clicheTerms"] and "可以说明" in cfg["clicheWhitelist"]
+    pats = checks._cliche_patterns({"clicheTerms": ["在…背景下", {"term": r"深度\s*融合", "regex": True}]})
+    hits = checks._scan([("f.md", 1, "在消费升级的背景下深度 融合；随着，市场发展")], pats, [])
+    assert sorted(h["term"] for h in hits) == ["在消费升级的背景下", "深度 融合"]  # 通配不跨标点（「随着，市场发展」不计）
+
+
+_RESEARCH_CHAPTER = (
+    "# 2 消费者调研\n\n"
+    "团队在 6 个商圈发放问卷并完成深度访谈，细节见附录。\n\n"
+    "调研显示，受访者对品牌的认知率为 71.2%。\n\n"
+    "有效样本 412 份，其中 25—35 岁占 58.3%。\n"
+)
+_SYN_PROJECT = {"track": "brand", "params": {"researchMode": "synthetic"}}
+
+
+def test_synthetic_research_markers_missing(tmp_path: Path) -> None:
+    script = "[0:00–1:00] 主讲\n\n访谈中一位店长说顾客变老了。有效问卷 412 份（示例数据，须替换）。\n"
+    qa = "### Q1【市场与数据】样本够吗\n- 结论：412 份问卷在 95% 置信水平误差 ±4.8%。\n"
+    r = checks.run(_mini_ws(tmp_path, _RESEARCH_CHAPTER, project=_SYN_PROJECT, script=script, qa=qa), track="brand", write=False)
+    c = _by_id(r)["synthetic_research_markers"]
+    assert c["status"] == FAIL and c["value"] == 2 and c["files"] == 3
+    assert c["missingFiles"] == ["05_正文/01_市场分析.md", "06_路演/答辩题库.md"]  # 讲稿同文件有标记 → 不缺
+    locs = {(h["file"], h["line"]): h for h in c["locations"]}
+    assert ("05_正文/01_市场分析.md", 3) not in locs  # 「发放问卷并完成深度访谈」是方法描述，不是结论
+    assert locs[("05_正文/01_市场分析.md", 5)]["term"] == "调研显示" and "71.2%" in locs[("05_正文/01_市场分析.md", 5)]["text"]
+    assert locs[("05_正文/01_市场分析.md", 7)]["term"] == "样本"
+    assert locs[("06_路演/答辩题库.md", 2)]["term"] == "问卷"
+    assert "缺标记：05_正文/01_市场分析.md（第 5、7 行）" in c["detail"]
+    assert "synthetic_research_markers" not in {g["id"] for g in r["hardGates"]}
+
+
+def test_synthetic_research_markers_marked_or_not_synthetic(tmp_path: Path, demo3: Dict[str, Any]) -> None:
+    marked = _RESEARCH_CHAPTER.replace("调研显示", "【示例数据，须替换为真实调研结果】调研显示")
+    r = checks.run(_mini_ws(tmp_path / "ok", marked, project=_SYN_PROJECT), track="brand", write=False)
+    c = _by_id(r)["synthetic_research_markers"]
+    assert c["status"] == PASS and c["value"] == 0 and c["files"] == 1 and c["locations"] == []
+    # provided 模式且账本无 synthetic 条目 → skipped
+    r = checks.run(_mini_ws(tmp_path / "prov", _RESEARCH_CHAPTER, project={"track": "brand", "params": {"researchMode": "provided"}}), track="brand", write=False)
+    assert _by_id(r)["synthetic_research_markers"]["status"] == SKIP
+    # 无 researchMode 但账本有 synthetic:true → 启用；示例数值只在带同类单位时触发（「第 32 类」商标类别不算 32%）
+    numbers = {"entries": [{"key": "sample_size", "label": "样本", "value": 412, "unit": "份", "synthetic": True},
+                           {"key": "research_scene_sport", "label": "运动场景占比", "value": 32, "unit": "%", "synthetic": True}]}
+    ch = "# 6 资产保护\n\n商标按第 30 类核心、第 32 类防御注册，预算 412 元。\n\n运动后场景占 32%。\n"
+    r = checks.run(_mini_ws(tmp_path / "led", ch, project={"track": "brand"}, numbers=numbers), track="brand", write=False)
+    c = _by_id(r)["synthetic_research_markers"]
+    assert c["status"] == FAIL and [(h["line"], h["term"]) for h in c["locations"]] == [(5, "账本 research_scene_sport")]
+    # ws_demo3：正文 / 讲稿 / 题库全部带标记，只有 PPT 第 3 页「38.7% 的受访者认为…」没有标记
+    d = demo3["checks"]["synthetic_research_markers"]
+    assert d["status"] == FAIL and d["missingFiles"] == ["06_路演/slides.json#3"] and d["files"] >= 6
+    assert d["locations"][0]["file"] == "06_路演/slides.json" and d["locations"][0]["line"] == 3 and "受访者" in d["locations"][0]["text"]
+
+
+_NUMBERS_CHAPTER = (
+    "# 2 市场分析\n\n"
+    "## 2.1 规模\n\n"
+    "2025 年中国功能糖果零售规模 120 亿元，较 2023 年增长 18.6%[1]。渗透率 3.2%，见图 2-1 与表 2-3，详见第 3 章第 12 页。\n\n"
+    "行业均价 15 元/袋，头部品牌客单价 28.5 元，复购率 35%。\n\n"
+    "Z 世代人群规模 2.6 亿人，年均消费 1,200 元。\n来源：团队整理自国家统计局。\n\n"
+    "| 指标 | 数值 |\n|---|---|\n| 市场规模 | 120 亿元 |\n| 占比 | 45% |\n\n来源：表内来源行。\n\n"
+    "按客单价 20 元与复购模型测算，首年销售额 4,860 万元。预算总额 300 万元，样本量 412 份。\n\n"
+    "预计到场 3 万人次，粉丝 100 万以上。\n"
+)
+_LEDGER = {"entries": [{"key": "budget_total", "label": "预算", "value": 300, "unit": "万元"}, {"key": "revenue_y1", "label": "首年收入", "value": 4860, "unit": "万元"}]}
+
+
+def test_unsourced_numbers_counts_and_exclusions(tmp_path: Path) -> None:
+    r = checks.run(_mini_ws(tmp_path, _NUMBERS_CHAPTER, project={"track": "brand"}, numbers=_LEDGER), track="brand", write=False)
+    c = _by_id(r)["unsourced_numbers"]
+    # 计入：120 亿元 / 18.6% / 3.2%（[1] 覆盖全段）、15 元 / 28.5 元 / 35%（无源）、2.6 亿人 / 1,200 元（下一行来源行）、
+    #       20 元 / 4,860 万元 / 300 万元（“测算”）、3 万人次 / 100 万（无源）；年份、图表号、章节页码、表格单元格、[1] 本身不计
+    assert c["total"] == 13 and c["unsourced"] == 5
+    assert c["status"] == FAIL and c["value"] == round(5 / 13, 4)
+    assert [h["term"] for h in c["locations"]] == ["15 元", "28.5 元", "35%", "3 万人次", "100 万"]
+    assert all(h["file"] == "05_正文/01_市场分析.md" and h["line"] in (7, 21) and len(h["text"]) <= 60 for h in c["locations"])
+    assert "unsourced_numbers" not in {g["id"] for g in r["hardGates"]}
+
+
+def test_unsourced_numbers_sources_ledger_and_demo3(tmp_path: Path, demo3: Dict[str, Any]) -> None:
+    # 同一段补上文献号 / 账本 → 无源数下降到 warn；账本匹配允许千分位 / 小数位 / 万↔亿 / 20%↔0.2
+    fixed = _NUMBERS_CHAPTER.replace("复购率 35%。", "复购率 35%[2]。").replace("粉丝 100 万以上。", "粉丝 100 万以上（示例数据）。")
+    r = checks.run(_mini_ws(tmp_path, fixed, project={"track": "brand"}, numbers=_LEDGER), track="brand", write=False)
+    c = _by_id(r)["unsourced_numbers"]
+    assert c["unsourced"] == 0 and c["status"] == PASS and c["locations"] == []
+    ledger = [(4860.0, "万元"), (0.2, "%"), (3547.0, "亿元"), (2.5, "倍")]
+    assert checks._in_ledger(4860, "万元", ledger) and checks._in_ledger(0.486, "亿元", ledger) and checks._in_ledger(48600000, "元", ledger)
+    assert checks._in_ledger(20, "%", ledger) and checks._in_ledger(3547.2, "亿元", ledger) and checks._in_ledger(2.50, "倍", ledger)
+    assert not checks._in_ledger(3600, "亿元", ledger)
+    # 读图 / 读表句与紧跟图表之后的段落由图表来源覆盖；一手调研口径（问卷 / 受访者）与「见第 N 章 / 见表」指向也算有源
+    read = ("# 2 x\n\n![份额](../04_图表/fig_a.png)\n\n读图：头部占 47%，CR5 合计 93.2%。\n\n"
+            "受访者中 58% 愿意多付 2 元。\n\n三阶段预算 126 万元、68 万元，见第 7 章明细。\n\n单场预算 2 万元。\n")
+    r = checks.run(_mini_ws(tmp_path / "read", read, project={"track": "brand"}), track="brand", write=False)
+    c = _by_id(r)["unsourced_numbers"]
+    assert c["total"] == 7 and [h["term"] for h in c["locations"]] == ["2 万元"]  # 47% / 93.2% / 58% / 2 元 / 126 万元 / 68 万元 有源
+    # 样例最多 20 条，但总数照记
+    many = "# 1 x\n\n" + "\n\n".join(f"第 {i} 类客群客单价 {10 + i}.5 元。" for i in range(30)) + "\n"
+    r = checks.run(_mini_ws(tmp_path / "many", many, project={"track": "brand"}), track="brand", write=False)
+    c = _by_id(r)["unsourced_numbers"]
+    assert c["unsourced"] == 30 and len(c["locations"]) == 20 and c["status"] == FAIL
+    # ws_demo3：56 个关键数字里 2 个无源（4%）→ pass；被点名的是「粉丝 100 万以上」「预计到场 3 万人次」两处无测算依据的数字，
+    # 带 [n] 的段、读图句、问卷结论句（问卷 / 受访者 口径）、账本数（300 万元 / 5000 万次 / 2.5 倍）都算有源
+    d = demo3["checks"]["unsourced_numbers"]
+    assert d["status"] == PASS and d["total"] == 56 and d["unsourced"] == 2 and d["value"] < 0.1
+    assert [(h["file"], h["line"], h["term"]) for h in d["locations"]] == [("05_正文/03_品牌定位与传播策略.md", 20, "100 万"), ("05_正文/03_品牌定位与传播策略.md", 20, "3 万人次")]
+    # 无正文 → skipped；有正文但没有带关键单位的数字 → pass 0
+    assert _by_id(checks.run(tmp_path / "empty", track="brand", write=False))["unsourced_numbers"]["status"] == SKIP
+    r = checks.run(_mini_ws(tmp_path / "nonum", "# 1 x\n\n本章无数字。\n", project={"track": "brand"}), track="brand", write=False)
+    assert _by_id(r)["unsourced_numbers"]["status"] == PASS and _by_id(r)["unsourced_numbers"]["total"] == 0
+
+
+def test_style_checks_in_chapter_mode(tmp_path: Path) -> None:
+    """单章快检也跑三项，且账本（numbers.json）在单章模式下可用。"""
+    _mini_ws(tmp_path, _NUMBERS_CHAPTER, project=_SYN_PROJECT, numbers=_LEDGER)
+    r = checks.run_chapter(tmp_path, "brand", "05_正文/01_市场分析.md")
+    assert {"cliche_terms", "unsourced_numbers", "synthetic_research_markers"} <= set(checks.CHAPTER_CHECK_IDS)
+    c = _by_id(r)
+    assert c["unsourced_numbers"]["total"] == 13 and c["unsourced_numbers"]["unsourced"] == 5  # 300 万元 / 4,860 万元 经账本放过
+    assert c["synthetic_research_markers"]["status"] == FAIL and c["synthetic_research_markers"]["locations"][0]["line"] == 19  # 「样本量 412 份」无标记
+    assert c["cliche_terms"]["status"] == PASS and c["cliche_terms"]["hits"] == 0
